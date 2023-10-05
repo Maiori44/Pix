@@ -3,8 +3,12 @@
 	color: white;
 }
 
+fieldset {
+	width: 20%;
+}
+
 .bigger {
-	font-size: x-large;
+	font-size: xx-large;
 }
 
 .big {
