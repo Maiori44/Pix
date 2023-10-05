@@ -6,6 +6,9 @@ local fs = require("fs")
 
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
 
+local index = assert(fs.readFileSync("src/index.html"))
+local style = assert(fs.readFileSync("src/style.css"))
+
 local fn finish_request(res, type, result, status_code) {
 	if status_code {
 		res.statusCode = status_code
@@ -22,25 +25,12 @@ local fn send_error(res, code, message) {
 	})
 }
 
-local fn read_file(res, type, path) {
-	fs.readFile(path, fn(err, output) {
-		if err {
-			send_error(res, 404, "Page not found.")
-		} else {
-			finish_request(res, type, output)			
-		}
-	})
-}
-
 local patterns = {
-	["^/$"] = fn(res) {
-		read_file(res, "text/html", "src/index.html")
+	["^/$"] = fn {
+		return "text/html", index
 	}
-	["(.+%.html)$"] = fn(res, name) {
-		read_file(res, "text/html", "src" .. name)
-	}
-	["(.+%.css)$"] = fn(res, name) {
-		read_file(res, "text/css", "src" .. name)
+	["^/style.css$"] = fn(res) {
+		return "text/css", style
 	}
 }
 
@@ -48,7 +38,7 @@ http.createServer(fn(req, res) {
 	local path = http.parseUrl(req.url).pathname
 	for pattern, func of patterns {
 		if local matched = path::match(pattern) {
-			func(res, matched)
+			finish_request(res, func(matched))
 			return
 		}
 	}
