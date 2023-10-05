@@ -1,3 +1,5 @@
+@define 
+
 local querystring = require("querystring")
 local http = require("http")
 local fs = require("fs")
@@ -13,10 +15,20 @@ local fn finish_request(res, type, result, status_code) {
 	res::finish(result)
 }
 
+local fn send_error(res, code, message) {
+	fs.readFile("src/error.html", fn(err, output) {
+		assert(!err, output)
+		finish_request(res, "text/html", output::format(code, message), code)
+	})
+}
+
 local fn read_file(res, type, path) {
 	fs.readFile(path, fn(err, output) {
-		assert(!err, output)
-		finish_request(res, type, output)
+		if err {
+			send_error(res, 404, "Page not found.")
+		} else {
+			finish_request(res, type, output)			
+		}
 	})
 }
 
@@ -40,4 +52,5 @@ http.createServer(fn(req, res) {
 			return
 		}
 	}
+	send_error(res, 404, "Page not found.")
 })::listen(port, ip)
