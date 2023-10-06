@@ -64,6 +64,7 @@ local patterns = {
 		}
 	}
 	["^/+style%.css$"] = return_file("text/css", "src/style.css"),
+	["^/+script%.js$"] = return_file("text/javascript", "src/script.js"),
 	["^/+FSEX300%.ttf$"] = return_file("font/ttf", "FSEX300.ttf"),
 	["^/+upload$"] = fn(req, res) {
 		if assert_method(req, res, "POST") {
@@ -77,8 +78,7 @@ local patterns = {
 			local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
 			pprint(decoded_data)
 		})
-		res::setHeader("Location", "waiting.html")
-		return "text/plain", "Uploading...", 303
+		send_error(res, 503, "Not finished...")
 	}
 }
 
