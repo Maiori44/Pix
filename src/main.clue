@@ -7,6 +7,7 @@ local fs = require("fs")
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
 
 local index = assert(fs.readFileSync("src/index.html"))
+local error = assert(fs.readFileSync("src/error.html"))
 local style = assert(fs.readFileSync("src/style.css"))
 
 local fn finish_request(res, type, result, status_code) {
@@ -19,10 +20,7 @@ local fn finish_request(res, type, result, status_code) {
 }
 
 local fn send_error(res, code, message) {
-	fs.readFile("src/error.html", fn(err, output) {
-		assert(!err, output)
-		finish_request(res, "text/html", output::format(code, message), code)
-	})
+	finish_request(res, "text/html", error::format(code, message), code)
 }
 
 local patterns = {
