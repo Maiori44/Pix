@@ -22,28 +22,43 @@ local fn send_error(res, code, message) {
 	finish_request(res, "text/html", error_html::format(code, message), code)
 }
 
+local fn assert_method(req, res, wanted) {
+	print(req.method, wanted)
+	if req.method == wanted {
+		return false
+	}
+	send_error(res, 400, "Wrong request method.")
+	return true
+}
+
 local fn return_file(type, path) {
 	local file = assert(fs.readFileSync(path))
-	return fn {
+	return fn(req, res) {
+		assert_method(req, res, "GET")
 		return type, file
 	}
 }
 
 local patterns = {
-	["^/$"] = fn(res) {
+	["^/$"] = fn(_, res) {
 		res::setHeader("Location", "index.html")
 		return "text/plain", "Redirect to index.html", 303
 	}
 	["^/index.html$"] = return_file("text/html", "src/index.html"),
 	["^/style.css$"] = return_file("text/css", "src/style.css"),
-	["^/FSEX300.ttf$"] = return_file("font/ttf", "FSEX300.ttf")
+	["^/FSEX300.ttf$"] = return_file("font/ttf", "FSEX300.ttf"),
+	["^/upload$"] = fn(req, res) {
+		if assert_method(req, res, "POST") {
+			return
+		}
+	}
 }
 
 http.createServer(fn(req, res) {
 	local path = http.parseUrl(req.url).pathname
 	for pattern, func of patterns {
 		if local matched = path::match(pattern) {
-			finish_request(res, func(res, matched))
+			finish_request(res, func(req, res, matched))
 			return
 		}
 	}
