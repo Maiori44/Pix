@@ -41,11 +41,11 @@ local fn return_file(type, path) {
 local cache = {}
 
 local patterns = {
-	["^/$"] = fn(_, res) {
+	["^/+$"] = fn(_, res) {
 		res::setHeader("Location", "index.html")
 		return "text/plain", "Redirect to index.html", 303
 	}
-	["^/(%a+%.html)$"] = fn(req, res, filename) {
+	["^/+(%a+%.html)$"] = fn(req, res, filename) {
 		if assert_method(req, res, "GET") {
 			return
 		}
@@ -61,9 +61,9 @@ local patterns = {
 			return new(req, res)
 		}
 	}
-	["^/style%.css$"] = return_file("text/css", "src/style.css"),
-	["^/FSEX300%.ttf$"] = return_file("font/ttf", "FSEX300.ttf"),
-	["^/upload$"] = fn(req, res) {
+	["^/+style%.css$"] = return_file("text/css", "src/style.css"),
+	["^/+FSEX300%.ttf$"] = return_file("font/ttf", "FSEX300.ttf"),
+	["^/+upload$"] = fn(req, res) {
 		if assert_method(req, res, "POST") {
 			return
 		}
