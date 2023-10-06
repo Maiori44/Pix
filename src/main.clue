@@ -3,8 +3,8 @@ local http = require("http")
 local fs = require("fs")
 
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
-
 local error_html = assert(fs.readFileSync("src/error.html"))
+local pprint = require("pretty-print").prettyPrint
 
 local fn finish_request(res, type, result, status_code) {
 	if res.headersSent {
@@ -67,6 +67,15 @@ local patterns = {
 		if assert_method(req, res, "POST") {
 			return
 		}
+		local fields_data = {}
+		req::on("data", fn(data) {
+			table.insert(fields_data, data)
+		})
+		req::on("end", fn {
+			print(table.concat(fields_data))
+		})
+		res::setHeader("Location", "waiting.html")
+		return "text/plain", "Uploading...", 303
 	}
 }
 
