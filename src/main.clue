@@ -27,7 +27,11 @@ local fn return_file(type, path) {
 }
 
 local patterns = {
-	["^/$"] = return_file("text/html", "src/index.html"),
+	["^/$"] = fn(res) {
+		res::setHeader("Location", "index.html")
+		return "text/plain", "Redirect to index.html", 303
+	}
+	["^/index.html$"] = return_file("text/html", "src/index.html"),
 	["^/style.css$"] = return_file("text/css", "src/style.css"),
 	["^/FSEX300.ttf$"] = return_file("font/ttf", "FSEX300.ttf")
 }
@@ -36,7 +40,7 @@ http.createServer(fn(req, res) {
 	local path = http.parseUrl(req.url).pathname
 	for pattern, func of patterns {
 		if local matched = path::match(pattern) {
-			finish_request(res, func(matched))
+			finish_request(res, func(res, matched))
 			return
 		}
 	}
