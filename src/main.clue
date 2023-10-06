@@ -76,7 +76,7 @@ local patterns = {
 		})
 		req::on("end", fn {
 			local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
-			pprint(decoded_data)
+			//pprint(decoded_data)
 		})
 		send_error(res, 503, "Not finished...")
 	}
