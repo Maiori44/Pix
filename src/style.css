@@ -13,8 +13,12 @@ fieldset {
 	width: 20%;
 }
 
-.bigger {
+.biggest {
 	font-size: xx-large;
+}
+
+.bigger {
+	font-size: x-large;
 }
 
 .big {
