@@ -7,6 +7,9 @@ local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
 local error_html = assert(fs.readFileSync("src/error.html"))
 
 local fn finish_request(res, type, result, status_code) {
+	if res.headersSent {
+		return
+	}
 	if status_code {
 		res.statusCode = status_code
 	}
