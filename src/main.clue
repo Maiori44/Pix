@@ -23,7 +23,6 @@ local fn send_error(res, code, message) {
 }
 
 local fn assert_method(req, res, wanted) {
-	print(req.method, wanted)
 	if req.method == wanted {
 		return false
 	}
@@ -39,14 +38,31 @@ local fn return_file(type, path) {
 	}
 }
 
+local cache = {}
+
 local patterns = {
 	["^/$"] = fn(_, res) {
 		res::setHeader("Location", "index.html")
 		return "text/plain", "Redirect to index.html", 303
 	}
-	["^/index.html$"] = return_file("text/html", "src/index.html"),
-	["^/style.css$"] = return_file("text/css", "src/style.css"),
-	["^/FSEX300.ttf$"] = return_file("font/ttf", "FSEX300.ttf"),
+	["^/(%a+%.html)$"] = fn(req, res, filename) {
+		if assert_method(req, res, "GET") {
+			return
+		}
+		if local cached = cache[filename] {
+			return cached(req, res)
+		} else {
+			local ok, new = pcall(return_file, "text/html", "src/" .. filename)
+			if !ok {
+				send_error(res, 404, "Page not found.")
+				return
+			}
+			cache[filename] = new
+			return new(req, res)
+		}
+	}
+	["^/style%.css$"] = return_file("text/css", "src/style.css"),
+	["^/FSEX300%.ttf$"] = return_file("font/ttf", "FSEX300.ttf"),
 	["^/upload$"] = fn(req, res) {
 		if assert_method(req, res, "POST") {
 			return
