@@ -1,3 +1,5 @@
+@import "src.multipart"
+
 local querystring = require("querystring")
 local http = require("http")
 local fs = require("fs")
@@ -67,12 +69,13 @@ local patterns = {
 		if assert_method(req, res, "POST") {
 			return
 		}
-		local fields_data = {}
+		local body_data = {}
 		req::on("data", fn(data) {
-			table.insert(fields_data, data)
+			table.insert(body_data, data)
 		})
 		req::on("end", fn {
-			print(table.concat(fields_data))
+			local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
+			pprint(decoded_data)
 		})
 		res::setHeader("Location", "waiting.html")
 		return "text/plain", "Uploading...", 303
