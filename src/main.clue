@@ -1,14 +1,10 @@
-@define 
-
 local querystring = require("querystring")
 local http = require("http")
 local fs = require("fs")
 
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
 
-local index = assert(fs.readFileSync("src/index.html"))
-local error = assert(fs.readFileSync("src/error.html"))
-local style = assert(fs.readFileSync("src/style.css"))
+local error_html = assert(fs.readFileSync("src/error.html"))
 
 local fn finish_request(res, type, result, status_code) {
 	if status_code {
@@ -20,16 +16,19 @@ local fn finish_request(res, type, result, status_code) {
 }
 
 local fn send_error(res, code, message) {
-	finish_request(res, "text/html", error::format(code, message), code)
+	finish_request(res, "text/html", error_html::format(code, message), code)
+}
+
+local fn return_file(type, path) {
+	local file = assert(fs.readFileSync(path))
+	return fn {
+		return type, file
+	}
 }
 
 local patterns = {
-	["^/$"] = fn {
-		return "text/html", index
-	}
-	["^/style.css$"] = fn(res) {
-		return "text/css", style
-	}
+	["^/$"] = return_file("text/html", "src/index.html"),
+	["^/style.css$"] = return_file("text/css", "src/style.css")
 }
 
 http.createServer(fn(req, res) {
