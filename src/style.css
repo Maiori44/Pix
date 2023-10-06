@@ -1,6 +1,12 @@
+@font-face {
+	font-family: "Fixedsys Excelsior";
+	src: url("FSEX300.ttf");
+}
+
 * {
 	background-color: black;
 	color: white;
+	font-family: "Fixedsys Excelsior";
 }
 
 fieldset {

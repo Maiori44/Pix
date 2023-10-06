@@ -28,7 +28,8 @@ local fn return_file(type, path) {
 
 local patterns = {
 	["^/$"] = return_file("text/html", "src/index.html"),
-	["^/style.css$"] = return_file("text/css", "src/style.css")
+	["^/style.css$"] = return_file("text/css", "src/style.css"),
+	["^/FSEX300.ttf$"] = return_file("font/ttf", "FSEX300.ttf")
 }
 
 http.createServer(fn(req, res) {
