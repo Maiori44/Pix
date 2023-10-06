@@ -36,7 +36,7 @@ local fn return_file(type, path) {
 	local file = assert(fs.readFileSync(path))
 	return fn(req, res) {
 		assert_method(req, res, "GET")
-		return type, file
+		finish_request(res, type, file)
 	}
 }
 
@@ -45,14 +45,14 @@ local cache = {}
 local patterns = {
 	["^/+$"] = fn(_, res) {
 		res::setHeader("Location", "index.html")
-		return "text/plain", "Redirect to index.html", 303
+		finish_request(res, "text/plain", "Redirect to index.html", 303)
 	}
 	["^/+(%a+%.html)$"] = fn(req, res, filename) {
 		if assert_method(req, res, "GET") {
 			return
 		}
 		if local cached = cache[filename] {
-			return cached(req, res)
+			finish_request(res, cached(req, res))
 		} else {
 			local ok, new = pcall(return_file, "text/html", "src/" .. filename)
 			if !ok {
@@ -60,7 +60,7 @@ local patterns = {
 				return
 			}
 			cache[filename] = new
-			return new(req, res)
+			finish_request(res, new(req, res))
 		}
 	}
 	["^/+style%.css$"] = return_file("text/css", "src/style.css"),
@@ -76,9 +76,17 @@ local patterns = {
 		})
 		req::on("end", fn {
 			local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
-			//pprint(decoded_data)
+			fs.readFile(".password", fn(err, password) {
+				if err {
+					send_error(res, 500, "Something unexpected happened.")
+					return
+				}
+				if decoded_data::get("password").value != password {
+					send_error(res, 401, "Wrong password.")
+					return
+				}
+			})
 		})
-		send_error(res, 503, "Not finished...")
 	}
 }
 
@@ -86,7 +94,7 @@ http.createServer(fn(req, res) {
 	local path = http.parseUrl(req.url).pathname
 	for pattern, func of patterns {
 		if local matched = path::match(pattern) {
-			finish_request(res, func(req, res, matched))
+			func(req, res, matched)
 			return
 		}
 	}
