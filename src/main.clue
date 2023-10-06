@@ -88,6 +88,15 @@ local patterns = {
 			})
 		})
 	}
+	["^/+files/+([^/]+)$"] = fn(req, res, file) {
+		fs.readFile("data/" .. file, fn(err, file) {
+			if err {
+				send_error(res, 404, "File not found.")
+				return
+			}
+			finish_request(res, nil, file)
+		})
+	}
 }
 
 http.createServer(fn(req, res) {
