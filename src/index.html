@@ -8,27 +8,29 @@
 	</head>
 	<body>
 		<center>
-			<fieldset>
+			<fieldset id="fieldset">
 				<legend>
 					<span class="biggest">Pix</span> <span class="big">by Felicia.iso</span>
 				</legend>
-				<span class="bigger" id="upload-disappear">Upload file</span>
-				<form action="upload" enctype="multipart/form-data" method="post" id="upload-form">
-					<h3>
-						<table>
-							<tr>
-								<td>Password</td>
-								<td><input type="password" maxlength="1000" name="password" required></td>
-							</tr>
-							<tr>
-								<td>File to upload</td>
-								<td><input type="file" name="file" required></td>
-							</tr>
-						</table>
-					</h3>
-					<input type="submit">
-				</form>
-				<script src="/script.js"></script>
+				<span id="overflow-checker">
+					<span class="bigger" id="upload-disappear">Upload file</span>
+					<form action="upload" enctype="multipart/form-data" method="post" id="upload-form">
+						<h3>
+							<table>
+								<tr>
+									<td>Password</td>
+									<td><input type="password" maxlength="1000" name="password" required></td>
+								</tr>
+								<tr>
+									<td>File to upload</td>
+									<td><input type="file" name="file" required></td>
+								</tr>
+							</table>
+						</h3>
+						<input type="submit">
+					</form>
+					<script src="/script.js"></script>
+				</span>
 			</fieldset>
 		</center>
 	</body>

@@ -1,5 +1,6 @@
 const form = document.getElementById("upload-form")
-form.addEventListener("submit", e => {
+
+form.addEventListener("submit", _ => {
 	const text = document.getElementById("upload-disappear")
 	form.style.opacity = 1
 	text.style.opacity = 1
@@ -23,3 +24,24 @@ form.addEventListener("submit", e => {
 		}
 	}, 7)
 })
+
+const fieldset = document.getElementById("fieldset")
+const container = document.getElementById("overflow-checker")
+
+fieldset.style.height = "173px"
+
+let prev_height = container.offsetHeight
+let momy = 0
+
+window.setInterval(() => {
+	if (prev_height != container.offsetHeight) {
+		momy = container.offsetHeight - prev_height
+	}
+	if (momy) {
+		const amount = momy / Math.abs(momy)
+		const new_height = parseFloat(fieldset.style.height) + amount
+		fieldset.style.height = Math.max(new_height, 173).toString() + "px"
+		momy -= amount
+	}
+	prev_height = container.offsetHeight
+}, 7)
