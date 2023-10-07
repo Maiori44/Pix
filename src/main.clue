@@ -81,6 +81,7 @@ local patterns = {
 					send_error(res, 500, "Something unexpected happened.")
 					return
 				}
+				pprint(decoded_data::get("password").value, password)
 				if decoded_data::get("password").value != password {
 					send_error(res, 401, "Wrong password.")
 					return
