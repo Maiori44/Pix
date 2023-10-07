@@ -81,7 +81,7 @@ local patterns = {
 					send_error(res, 500, "Something unexpected happened.")
 					return
 				}
-				if decoded_data::get("password").value::match("[^\n]+") != password {
+				if decoded_data::get("password").value != password::match("[^\n]+") {
 					send_error(res, 401, "Wrong password.")
 					return
 				}
