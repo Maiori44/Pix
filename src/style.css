@@ -10,8 +10,10 @@
 }
 
 fieldset {
-	width: 20%;
+	max-width: 380.8px;
 	min-height: 173.433px;
+	height: auto;
+	transition: height 0.5s ease-in-out;
 }
 
 .biggest {
