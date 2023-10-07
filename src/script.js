@@ -9,7 +9,7 @@ form.addEventListener("submit", e => {
 		if (parseFloat(form.style.opacity) <= 0) {
 			form.innerHTML = "<h2>Uploading</h2>"
 			let dots = 0
-			const dots_interval = window.setInterval(() => {
+			window.setInterval(() => {
 				dots = (dots + 1) % 4
 				form.innerHTML = "<h2>Uploading" + ".".repeat(dots) + "</h2>"
 			}, 500)
