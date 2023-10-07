@@ -4,7 +4,7 @@ local querystring = require("querystring")
 local http = require("http")
 local fs = require("fs")
 
-local port, ip = args[2] || 41023, args[3] || "127.0.0.1"
+local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
 local error_html = assert(fs.readFileSync("src/error.html"))
 local pprint = require("pretty-print").prettyPrint
 
