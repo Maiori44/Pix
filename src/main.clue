@@ -81,12 +81,16 @@ local patterns = {
 					send_error(res, 500, "Something unexpected happened.")
 					return
 				}
-				pprint(decoded_data::get("password").value)
-				pprint(password)
 				if decoded_data::get("password").value != password {
 					send_error(res, 401, "Wrong password.")
 					return
 				}
+				local file = decoded_data::get("file")
+				local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
+				fs.writeFile("data/" .. filename, file.value, fn(err) {
+					res::setHeader("Location", "/files/" .. filename)
+					finish_request(res, "text/plain", "Upload complete", 303)
+				})
 			})
 		})
 	}
