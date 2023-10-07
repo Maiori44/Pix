@@ -1,2 +1,2 @@
 #/bin/sh
-clue src -t luajit && luvit main
+clue src/main -t luajit && luvit main
