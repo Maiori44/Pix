@@ -100,7 +100,7 @@ local patterns = {
 				send_error(res, 404, "File not found.")
 				return
 			}
-			finish_request(res, nil, file)
+			finish_request(res, "image/png", file)
 		})
 	}
 }
