@@ -165,6 +165,7 @@ http.createServer(fn(req, res) {
 	for pattern, func of patterns {
 		if local matched = path::match(pattern) {
 			func(req, res, matched)
+			collectgarbage()
 			return
 		}
 	}
