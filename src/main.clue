@@ -107,7 +107,6 @@ local patterns = {
 
 http.createServer(fn(req, res) {
 	local path = http.parseUrl(req.url).pathname
-	pprint(path)
 	for pattern, func of patterns {
 		if local matched = path::match(pattern) {
 			func(req, res, matched)
