@@ -57,26 +57,34 @@ local patterns = {
 		res::setHeader("Location", "index.html")
 		finish_request(res, "text/plain", "Redirect to index.html", 303)
 	}
-	["^/+(%a+%.html)$"] = fn(req, res, filename) {
+	["^/+(%a+%.%a+)$"] = fn(req, res, filename) {
 		if assert_method(req, res, "GET") {
 			return
 		}
 		if local cached = cache[filename] {
 			finish_request(res, cached(req, res))
 		} else {
-			local ok, new = pcall(return_file, "text/html", "src/" .. filename)
-			if !ok {
-				send_error(res, 404, "Page not found.")
-				print(new)
-				return
-			}
-			cache[filename] = new
-			finish_request(res, new(req, res))
+			fs.readFile("static/" .. filename, fn(err, file) {
+				if err {
+					send_error(res, 404, "File not found.")
+					print(err)
+					return
+				}
+				local type = match filename::match("%.(%a+)$") {
+					"html" => "text/html",
+					"css" => "text/css",
+					"js" => "text/javascript",
+					"ttf" => "font/tff"
+				}
+				local fn new(req, res) {
+					assert_method(req, res, "GET")
+					finish_request(res, type, file)
+				}
+				cache[filename] = new
+				finish_request(res, new(req, res))
+			})
 		}
 	}
-	["^/+style%.css$"] = return_file("text/css", "src/style.css"),
-	["^/+script%.js$"] = return_file("text/javascript", "src/script.js"),
-	["^/+FSEX300%.ttf$"] = return_file("font/ttf", "FSEX300.ttf"),
 	["^/+upload$"] = fn(req, res) {
 		if assert_method(req, res, "POST") {
 			return
