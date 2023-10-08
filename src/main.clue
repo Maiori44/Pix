@@ -98,7 +98,7 @@ local patterns = {
 			fs.readFile(".password", fn(err, password) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
-					print(password)
+					print(err)
 					return
 				}
 				if decoded_data::get("password").value != password::match("[^\n]+") {
@@ -118,7 +118,7 @@ local patterns = {
 		fs.readFile("data/" .. file, fn(err, file) {
 			if err {
 				send_error(res, 404, "File not found.")
-				print(file)
+				print(err)
 				return
 			}
 			finish_request(res, "image/png", file)
@@ -128,7 +128,7 @@ local patterns = {
 		fs.readdir("data", fn(err, files) {
 			if err {
 				send_error(res, 500, "Something unexpected happened.")
-				print(files)
+				print(err)
 				return
 			}
 			local size = 0
@@ -136,7 +136,7 @@ local patterns = {
 			local fn read_file_size(err, file_info) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
-					print(file_info)
+					print(err)
 					tot_files = nil
 					return
 				}
