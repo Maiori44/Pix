@@ -1,0 +1,14 @@
+#bottom {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+#storage-used-padding {
+	opacity: 0;
+	white-space: nowrap;
+}
+
+#storage-used {
+	white-space: nowrap;
+}

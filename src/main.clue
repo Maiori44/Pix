@@ -71,8 +71,8 @@ local patterns = {
 					return
 				}
 				local type = match filename::match("%.(%a+)$") {
-					"html" => "text/html",
 					"css" => "text/css",
+					"html" => "text/html",
 					"js" => "text/javascript",
 					"ttf" => "font/tff"
 				}
