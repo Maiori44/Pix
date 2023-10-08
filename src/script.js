@@ -45,3 +45,10 @@ window.setInterval(() => {
 	}
 	prev_height = container.offsetHeight
 }, 7)
+
+fetch("/storage_used").then(result => {
+	result.text().then(text => {
+		document.getElementById("storage-used-padding").innerText = "Storage used: " + text
+		document.getElementById("storage-used").innerText = "Storage used: " + text
+	})
+})

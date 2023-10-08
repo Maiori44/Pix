@@ -40,6 +40,16 @@ local fn return_file(type, path) {
 	}
 }
 
+local fn convert_bytes(bytes) {
+	local sizes = {"B", "KB", "MB", "GB"}
+    local i = 1
+    while bytes >= 1000 && i < #sizes {
+        bytes = bytes / 1000
+        i += 1
+    }
+    return ("%.1f%s")::format(bytes, sizes[i])
+}
+
 local cache = {}
 
 local patterns = {
@@ -101,6 +111,34 @@ local patterns = {
 				return
 			}
 			finish_request(res, "image/png", file)
+		})
+	}
+	["^/+storage_used$"] = fn(req, res) {
+		fs.readdir("data", fn(err, files) {
+			if err { //TODO print the error?
+				send_error(res, 500, "Something unexpected happened.")
+				return
+			}
+			local size = 0
+			local tot_files = #files
+			local fn read_file_size(err, file_info) {
+				if err {
+					send_error(res, 500, "Something unexpected happened.")
+					tot_files = nil
+					return
+				}
+				size += file_info.size
+				tot_files -= 1
+				if tot_files == 0 {
+					finish_request(res, "text/plain", convert_bytes(size))
+				}
+			}
+			for k, file in files {
+				fs.stat("data/" .. file, read_file_size)
+				if !tot_files {
+					return
+				}
+			}
 		})
 	}
 }
