@@ -67,6 +67,7 @@ local patterns = {
 			local ok, new = pcall(return_file, "text/html", "src/" .. filename)
 			if !ok {
 				send_error(res, 404, "Page not found.")
+				print(new)
 				return
 			}
 			cache[filename] = new
@@ -89,6 +90,7 @@ local patterns = {
 			fs.readFile(".password", fn(err, password) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
+					print(password)
 					return
 				}
 				if decoded_data::get("password").value != password::match("[^\n]+") {
@@ -108,6 +110,7 @@ local patterns = {
 		fs.readFile("data/" .. file, fn(err, file) {
 			if err {
 				send_error(res, 404, "File not found.")
+				print(file)
 				return
 			}
 			finish_request(res, "image/png", file)
@@ -115,8 +118,9 @@ local patterns = {
 	}
 	["^/+storage_used$"] = fn(req, res) {
 		fs.readdir("data", fn(err, files) {
-			if err { //TODO print the error?
+			if err {
 				send_error(res, 500, "Something unexpected happened.")
+				print(files)
 				return
 			}
 			local size = 0
@@ -124,6 +128,7 @@ local patterns = {
 			local fn read_file_size(err, file_info) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
+					print(file_info)
 					tot_files = nil
 					return
 				}
