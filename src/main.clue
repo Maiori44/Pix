@@ -95,6 +95,11 @@ local patterns = {
 		})
 		req::on("end", fn {
 			local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
+			local file = decoded_data::get("file")
+			if #file.value >= 20000000 {
+				send_error(res, 413, "File too large.")
+				return
+			}
 			fs.readFile(".password", fn(err, password) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
@@ -105,7 +110,6 @@ local patterns = {
 					send_error(res, 401, "Wrong password.")
 					return
 				}
-				local file = decoded_data::get("file")
 				local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
 				fs.writeFile("data/" .. filename, file.value, fn(err) {
 					res::setHeader("Location", "/files/" .. filename)
