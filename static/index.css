@@ -7,3 +7,8 @@
 #storage-used {
 	white-space: nowrap;
 }
+
+#files-button {
+	color: gray;
+	border-color: gray;
+}
