@@ -74,6 +74,7 @@ local patterns = {
 					"css" => "text/css",
 					"html" => "text/html",
 					"js" => "text/javascript",
+					"ico" => "image/x-icon",
 					"ttf" => "font/tff"
 				}
 				local fn new(req, res) {
