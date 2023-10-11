@@ -7,13 +7,31 @@
 	}
 }
 
+local pprint = require("pretty-print").prettyPrint
 local querystring = require("querystring")
 local http = require("http")
+local json = require("json")
 local fs = require("fs")
 
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
 local error_html = assert(fs.readFileSync("src/error.html"))
-local pprint = require("pretty-print").prettyPrint
+
+local content_types
+local json_file = fs.readFileSync("files.json")
+if json_file {
+	content_types = json.decode(json_file)
+} else {
+	content_types = {}
+	fs.writeFileSync("files.json", "{}")
+}
+
+{	//this json library gives quite an awful output...let's fix it
+	local encode = json.encode
+	local state = {indent = true, exception = print}
+	method json.encode(value) {
+		return encode(value, state)::gsub("  ", "\t")::gsub("\"%:([{\"])", "\": %1")
+	}
+}
 
 local fn finish_request(res, type, result, status_code) {
 	if res.headersSent {
@@ -102,18 +120,24 @@ local patterns = {
 					res::setHeader("Location", "/files/" .. filename)
 					finish_request(res, "text/plain", "Upload complete", 303)
 				})
+				content_types[filename] = file.headers[2]::match("Content%-Type: (.+)")
+				fs.writeFile("files.json", json.encode(content_types), fn(err) {
+					if err {
+						print(filename .. ": " .. err)
+					}
+				})
 			})
 		})
 	}
-	["^/+files/+([^/]+)$"] = fn(req, res, file) {
+	["^/+files/+([^/]+)$"] = fn(req, res, filename) {
 		$assert_method!("GET")
-		fs.readFile("data/" .. file, fn(err, file) {
+		fs.readFile("data/" .. filename, fn(err, file) {
 			if err {
 				send_error(res, 404, "File not found.")
 				print(err)
 				return
 			}
-			finish_request(res, "image/png", file)
+			finish_request(res, content_types[filename] ?? "image/png", file)
 		})
 	}
 	["^/+storage_used$"] = fn(req, res) {
