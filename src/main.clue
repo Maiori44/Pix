@@ -1,5 +1,12 @@
 @import "src.multipart"
 
+@macro assert_method(wanted) {
+	if req.method != $wanted {
+		send_error(res, 400, "Wrong request method.")
+		return
+	}
+}
+
 local querystring = require("querystring")
 local http = require("http")
 local fs = require("fs")
@@ -24,22 +31,6 @@ local fn send_error(res, code, message) {
 	finish_request(res, "text/html", error_html::format(code, message), code)
 }
 
-local fn assert_method(req, res, wanted) {
-	if req.method == wanted {
-		return false
-	}
-	send_error(res, 400, "Wrong request method.")
-	return true
-}
-
-local fn return_file(type, path) {
-	local file = assert(fs.readFileSync(path))
-	return fn(req, res) {
-		assert_method(req, res, "GET")
-		finish_request(res, type, file)
-	}
-}
-
 local fn convert_bytes(bytes) {
 	local sizes = {"B", "KB", "MB", "GB"}
     local i = 1
@@ -58,11 +49,9 @@ local patterns = {
 		finish_request(res, "text/plain", "Redirect to index.html", 303)
 	}
 	["^/+(%a+%.%a+)$"] = fn(req, res, filename) {
-		if assert_method(req, res, "GET") {
-			return
-		}
+		$assert_method!("GET")
 		if local cached = cache[filename] {
-			finish_request(res, cached(req, res))
+			finish_request(res, cached.type, cached.file)
 		} else {
 			fs.readFile("static/" .. filename, fn(err, file) {
 				if err {
@@ -77,19 +66,16 @@ local patterns = {
 					"ico" => "image/x-icon",
 					"ttf" => "font/tff"
 				}
-				local fn new(req, res) {
-					assert_method(req, res, "GET")
-					finish_request(res, type, file)
+				cache[filename] = {
+					type = $
+					file = $
 				}
-				cache[filename] = new
-				finish_request(res, new(req, res))
+				finish_request(res, type, file)
 			})
 		}
 	}
 	["^/+upload$"] = fn(req, res) {
-		if assert_method(req, res, "POST") {
-			return
-		}
+		$assert_method!("POST")
 		local body_data = {}
 		req::on("data", fn(data) {
 			table.insert(body_data, data)
@@ -120,6 +106,7 @@ local patterns = {
 		})
 	}
 	["^/+files/+([^/]+)$"] = fn(req, res, file) {
+		$assert_method!("GET")
 		fs.readFile("data/" .. file, fn(err, file) {
 			if err {
 				send_error(res, 404, "File not found.")
@@ -130,6 +117,7 @@ local patterns = {
 		})
 	}
 	["^/+storage_used$"] = fn(req, res) {
+		$assert_method!("GET")
 		fs.readdir("data", fn(err, files) {
 			if err {
 				send_error(res, 500, "Something unexpected happened.")
