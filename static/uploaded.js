@@ -2,7 +2,11 @@ const file = new URLSearchParams(window.location.search).get("file")
 if (!file) {
 	document.getElementById("file-uploaded-text").innerText = "What are you doing here?"
 } else {
-	document.getElementById("uploaded-file").src = "/files/" + file
+	const img = document.getElementById("uploaded-file")
+	img.src = "/files/" + file
+	img.addEventListener("error", () => {
+		img.classList.add("invisible")
+	})
 }
 
 const copy_link_button = document.getElementsByClassName("uploaded-button")[0]
