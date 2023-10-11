@@ -78,11 +78,11 @@ local patterns = {
 					return
 				}
 				local type = match filename::match("%.(%a+)$") {
-					"css" => "text/css",
 					"html" => "text/html",
 					"js" => "text/javascript",
-					"ico" => "image/x-icon",
-					"ttf" => "font/tff"
+					"css" => "text/css",
+					"ttf" => "font/tff",
+					"ico" => "image/x-icon"
 				}
 				cache[filename] = {
 					type = $

@@ -32,3 +32,19 @@ fieldset {
 	opacity: 0;
 	white-space: nowrap;
 }
+
+.disabled-button {
+	color: gray;
+	border-color: gray;
+	pointer-events: none;
+}
+
+#bottom {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+#storage-used {
+	white-space: nowrap;
+}
