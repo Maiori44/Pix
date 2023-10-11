@@ -117,7 +117,7 @@ local patterns = {
 				}
 				local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
 				fs.writeFile("data/" .. filename, file.value, fn(err) {
-					res::setHeader("Location", "/files/" .. filename)
+					res::setHeader("Location", "/uploaded.html?file=" .. filename)
 					finish_request(res, "text/plain", "Upload complete", 303)
 				})
 				content_types[filename] = file.headers[2]::match("Content%-Type: (.+)")

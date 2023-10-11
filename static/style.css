@@ -27,3 +27,8 @@ fieldset {
 .big {
 	font-size: large;
 }
+
+.invisible {
+	opacity: 0;
+	white-space: nowrap;
+}
