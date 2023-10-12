@@ -95,16 +95,19 @@ local patterns = {
 	["^/+upload$"] = fn(req, res) {
 		$assert_method!("POST")
 		local body_data = {}
+		local size = 0
 		req::on("data", fn(data) {
+			size += #data
+			if size >= 20000000 {
+				send_error(res, 413, "File too large.")
+				req::removeAllListeners()
+				return
+			}
 			table.insert(body_data, data)
 		})
 		req::on("end", fn {
 			local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
 			local file = decoded_data::get("file")
-			if #file.value >= 20000000 {
-				send_error(res, 413, "File too large.")
-				return
-			}
 			fs.readFile(".password", fn(err, password) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
