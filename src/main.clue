@@ -177,7 +177,7 @@ local patterns = {
 }
 
 http.createServer(fn(req, res) {
-	local path = http.parseUrl(req.url).pathname
+	local path = querystring.urldecode(http.parseUrl(req.url).pathname)
 	for pattern, func of patterns {
 		if local matched = path::match(pattern) {
 			func(req, res, matched)
