@@ -45,7 +45,10 @@ fieldset {
 
 .file {
 	border: 1px dashed white;
-	border-radius: 2px;
+	border-radius: 3px;
+	max-width: 120px;
+	min-width: 120px;
+	overflow-wrap: break-word;
 }
 
 #bottom {
