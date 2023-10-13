@@ -53,16 +53,3 @@ fetch("/storage_used").then(result => {
 			: "error!")
 	})
 })
-
-const password = document.getElementsByName("password")[0]
-const file = document.getElementsByName("file")[0]
-
-document.getElementById("files-button").addEventListener("focusin", () => {
-	password.setAttribute("required", "")
-	file.removeAttribute("required")
-})
-
-document.getElementById("upload-button").addEventListener("focusin", () => {
-	password.setAttribute("required", "")
-	file.setAttribute("required", "")
-})

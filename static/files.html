@@ -12,20 +12,23 @@
 				<legend>
 					<span class="biggest">Pix</span> <span class="big">by Felicia.iso</span>
 				</legend>
-				<div style="overflow-y: scroll; height: 120px;">
-					<span class="bigger">Currently uploaded files</span>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
-					<h2 id="file-uploaded-text">placeholder</h2>
+				<div id="files-list">
+					<span class="bigger" id="title">Insert password to continue</span>
+					<form id="password-check">
+						<h3>
+							<table>
+								<tr>
+									<td width="40%">Password</td>
+									<td><input type="password" maxlength="1000" id="password" required></td>
+								</tr>
+							</table>
+							<input type="submit" value="Submit">
+						</h3>
+					</form>
 				</div>
 				<a href="/index.html"><button>Go back</button></a>
 			</fieldset>
+			<br><img id="selected-file">
 			<script src="/files.js"></script>
 		</center>
 	</body>
