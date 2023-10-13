@@ -48,7 +48,9 @@ window.setInterval(() => {
 
 fetch("/storage_used").then(result => {
 	result.text().then(text => {
-		document.getElementById("storage-used").innerText = "Storage used: " + text
+		document.getElementById("storage-used").innerText = "Storage used: " + (result.status == 200
+			? text
+			: "error!")
 	})
 })
 
