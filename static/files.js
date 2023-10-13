@@ -17,24 +17,37 @@ password_check.addEventListener("submit", e => {
 			document.getElementById("title").innerText = "Currently uploaded files"
 			document.getElementById("files-list").insertAdjacentHTML("beforeend", text)
 			const img = document.getElementById("selected-file")
+			img.style.opacity = "0"
+			let target_opacity = 0
+			let next_target_opacity = 0
+			let old_src
 			Array.from(document.getElementsByClassName("link")).forEach(link => {
 				link.addEventListener("mouseenter", () => {
+					old_src = img.src
 					img.src = link.href
-					img.link = link
-					img.style.opacity = "1"
-					img.style.animation = "fade-in 0.2s linear"
+					next_target_opacity = 1
 				})
 				link.addEventListener("mouseleave", () => {
-					img.old_src = img.src
-					img.style.opacity = "0"
-					img.style.animation = "fade-out 0.2s linear"
+					next_target_opacity = 0
+					target_opacity = 0
 				})
 			})
 			img.addEventListener("error", () => {
-				img.src = img.old_src
-				img.style.opacity = "0"
-				img.style.animation = "fade-out 0.2s linear"
+				img.src = old_src
+				target_opacity = 0
+				next_target_opacity = 0
 			})
+			img.addEventListener("load", () => {
+				target_opacity = next_target_opacity
+			})
+			window.setInterval(() => {
+				const opacity = parseFloat(img.style.opacity)
+				if (opacity < target_opacity) {
+					img.style.opacity = opacity + 0.05
+				} else if (opacity > target_opacity) {
+					img.style.opacity = opacity - 0.05					
+				}
+			}, 7)
 		})
 	})
 })
