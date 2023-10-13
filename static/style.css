@@ -46,8 +46,8 @@ fieldset {
 .file {
 	border: 1px dashed white;
 	border-radius: 3px;
-	max-width: 120px;
-	min-width: 120px;
+	max-width: 115px;
+	min-width: 115px;
 	overflow-wrap: break-word;
 }
 
