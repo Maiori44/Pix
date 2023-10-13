@@ -7,19 +7,26 @@
 	}
 }
 
-@macro assert_password(code) {
-	local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
-	fs.readFile(".password", fn(err, password) {
-		if err {
-			send_error(res, 500, "Something unexpected happened.")
-			print(err)
-			return
-		}
-		if decoded_data::get("password").value != password::match("[^\n]+") {
-			send_error(res, 401, "Wrong password.")
-			return
-		}
-		$code
+@macro assert_password(code, ...) {
+	local body_data = {}
+	req::on("data", fn(data) {
+		${$vararg}
+		table.insert(body_data, data)
+	})
+	req::on("end", fn {
+		local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
+		fs.readFile(".password", fn(err, password) {
+			if err {
+				send_error(res, 500, "Something unexpected happened.")
+				print(err)
+				return
+			}
+			if decoded_data::get("password").value != password::match("[^\n]+") {
+				send_error(res, 401, "Wrong password.")
+				return
+			}
+			$code
+		})
 	})
 }
 
@@ -110,32 +117,27 @@ local patterns = {
 	}
 	["^/+upload$"] = fn(req, res) {
 		$assert_method!("POST")
-		local body_data = {}
 		local size = 0
-		req::on("data", fn(data) {
+		$assert_password!({
+			local file = decoded_data::get("file")
+			local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
+			fs.writeFile("data/" .. filename, file.value, fn(err) {
+				res::setHeader("Location", "/uploaded.html?file=" .. filename)
+				finish_request(res, "text/plain", "Upload complete", 303)
+			})
+			content_types[filename] = file.headers[2]::match("Content%-Type: (.+)")
+			fs.writeFile("files.json", json.encode(content_types), fn(err) {
+				if err {
+					print(filename .. ": " .. err)
+				}
+			})
+		}, {
 			size += #data
 			if size >= 20000000 {
 				send_error(res, 413, "File too large.")
 				req::removeAllListeners()
 				return
 			}
-			table.insert(body_data, data)
-		})
-		req::on("end", fn {
-			$assert_password!({
-				local file = decoded_data::get("file")
-				local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
-				fs.writeFile("data/" .. filename, file.value, fn(err) {
-					res::setHeader("Location", "/uploaded.html?file=" .. filename)
-					finish_request(res, "text/plain", "Upload complete", 303)
-				})
-				content_types[filename] = file.headers[2]::match("Content%-Type: (.+)")
-				fs.writeFile("files.json", json.encode(content_types), fn(err) {
-					if err {
-						print(filename .. ": " .. err)
-					}
-				})
-			})
 		})
 	}
 	["^/+files/+([^/]+)$"] = fn(req, res, filename) {
@@ -178,6 +180,25 @@ local patterns = {
 					return
 				}
 			}
+		})
+	}
+	["/+file_list"] = fn(req, res) {
+		$assert_method!("POST") //has to be POST since it has to have a body
+		$assert_password!({
+			fs.readdir("data", fn(err, files) {
+				if err {
+					send_error(res, 500, "Something unexpected happened.")
+					print(err)
+					return
+				}
+				local list = {}
+				for _, file in files {
+					if local filename = file::match("%d+%-([^<>]+)") {
+						table.insert(list, ("<a href=\"/files/%s\">%s</a>")::format(file, filename))
+					}
+				}
+				finish_request(res, "text/html", table.concat(list, "<br>"))
+			})
 		})
 	}
 }

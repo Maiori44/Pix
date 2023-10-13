@@ -52,3 +52,8 @@ fieldset {
 #storage-used {
 	white-space: nowrap;
 }
+
+#files-list {
+	overflow: scroll;
+	height: 120px;
+}
