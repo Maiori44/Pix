@@ -7,6 +7,22 @@
 	}
 }
 
+@macro assert_password(code) {
+	local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
+	fs.readFile(".password", fn(err, password) {
+		if err {
+			send_error(res, 500, "Something unexpected happened.")
+			print(err)
+			return
+		}
+		if decoded_data::get("password").value != password::match("[^\n]+") {
+			send_error(res, 401, "Wrong password.")
+			return
+		}
+		$code
+	})
+}
+
 local pprint = require("pretty-print").prettyPrint
 local querystring = require("querystring")
 local http = require("http")
@@ -106,18 +122,8 @@ local patterns = {
 			table.insert(body_data, data)
 		})
 		req::on("end", fn {
-			local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
-			local file = decoded_data::get("file")
-			fs.readFile(".password", fn(err, password) {
-				if err {
-					send_error(res, 500, "Something unexpected happened.")
-					print(err)
-					return
-				}
-				if decoded_data::get("password").value != password::match("[^\n]+") {
-					send_error(res, 401, "Wrong password.")
-					return
-				}
+			$assert_password!({
+				local file = decoded_data::get("file")
 				local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
 				fs.writeFile("data/" .. filename, file.value, fn(err) {
 					res::setHeader("Location", "/uploaded.html?file=" .. filename)
