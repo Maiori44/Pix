@@ -58,7 +58,7 @@ fieldset {
 	white-space: nowrap;
 }
 
-#files-list {
+#file-list {
 	overflow: scroll;
 	height: 120px;
 }
