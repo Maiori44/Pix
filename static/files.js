@@ -16,6 +16,25 @@ password_check.addEventListener("submit", e => {
 			password_check.remove()
 			document.getElementById("title").innerText = "Currently uploaded files"
 			document.getElementById("files-list").insertAdjacentHTML("beforeend", text)
+			const img = document.getElementById("selected-file")
+			Array.from(document.getElementsByClassName("link")).forEach(link => {
+				link.addEventListener("mouseenter", () => {
+					img.src = link.href
+					img.link = link
+					img.style.opacity = "1"
+					img.style.animation = "fade-in 0.2s linear"
+				})
+				link.addEventListener("mouseleave", () => {
+					img.old_src = img.src
+					img.style.opacity = "0"
+					img.style.animation = "fade-out 0.2s linear"
+				})
+			})
+			img.addEventListener("error", () => {
+				img.src = img.old_src
+				img.style.opacity = "0"
+				img.style.animation = "fade-out 0.2s linear"
+			})
 		})
 	})
 })

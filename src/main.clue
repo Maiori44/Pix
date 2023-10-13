@@ -194,7 +194,10 @@ local patterns = {
 				local list = {}
 				for _, file in files {
 					if local filename = file::match("%d+%-([^<>]+)") {
-						table.insert(list, ("<a href=\"/files/%s\">%s</a>")::format(file, filename))
+						table.insert(
+							list,
+							("<a href=\"/files/%s\" class=\"link\">%s</a>")::format(file, filename)
+						)
 					}
 				}
 				finish_request(res, "text/html", table.concat(list, "<br>"))
