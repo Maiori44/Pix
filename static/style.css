@@ -43,6 +43,11 @@ fieldset {
 	margin-inline: 15px;
 }
 
+.file {
+	border: 1px dashed white;
+	border-radius: 2px;
+}
+
 #bottom {
 	display: flex;
 	justify-content: space-between;

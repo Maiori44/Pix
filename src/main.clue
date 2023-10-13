@@ -191,15 +191,29 @@ local patterns = {
 					print(err)
 					return
 				}
-				local list = {}
-				for _, file in files {
+				local list = {"<table>"}
+				local next_k = 2
+				for k, file in files {
 					if local filename = file::match("%d+%-([^<>]+)") {
-						table.insert(
-							list,
-							("<br><a href=\"/files/%s\" class=\"link\">%s</a>")::format(file, filename)
-						)
+						if (k % 3) == 1 {
+							list[next_k] = "<tr class=\"file\">"
+							next_k += 1
+						}
+						list[next_k] = ("<td class=\"file\"><a href=\"/files/%s\" class=\"link\">%s</a></td>")
+							::format(file, filename)
+						if (k % 3) == 0 {
+							list[next_k + 1] = "</tr>"
+							next_k += 2
+						} else {
+							next_k += 1
+						}
 					}
 				}
+				if list[next_k - 1] != "</tr>" {
+					list[next_k] = "</tr>"
+					next_k += 1
+				}
+				list[next_k] = "</table>"
 				finish_request(res, "text/html", table.concat(list))
 			})
 		})
