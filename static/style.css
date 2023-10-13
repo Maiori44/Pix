@@ -65,3 +65,9 @@ fieldset {
 	overflow-y: scroll;
 	height: 120px;
 }
+
+#selected-file {
+	height: auto;
+	min-width: 20%;
+	max-width: 40%;
+}
