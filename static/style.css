@@ -62,6 +62,6 @@ fieldset {
 }
 
 #file-list {
-	overflow: scroll;
+	overflow-y: scroll;
 	height: 120px;
 }
