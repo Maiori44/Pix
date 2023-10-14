@@ -3,6 +3,13 @@
 	src: url("font.ttf");
 }
 
+@media screen and (min-width: 640px) {
+    body {
+        transform: scale(2);
+		transform-origin: top center;
+    }
+}
+
 * {
 	background-color: black;
 	color: white;
@@ -68,6 +75,6 @@ fieldset {
 
 #selected-file {
 	height: auto;
-	min-width: 20%;
-	max-width: 40%;
+	min-width: 5%;
+	max-width: 10%;
 }
