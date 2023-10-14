@@ -191,17 +191,19 @@ local patterns = {
 					print(err)
 					return
 				}
-				local list = {"<table>"}
+				local list = {}
+				local tot_files = 0
 				local next_k = 2
-				for k, file in files {
+				for _, file in files {
 					if local filename = file::match("%d+%-([^<>]+)") {
-						if (k % 3) == 1 {
+						tot_files += 1
+						if (tot_files % 3) == 1 {
 							list[next_k] = "<tr class=\"file\">"
 							next_k += 1
 						}
 						list[next_k] = ("<td class=\"file\"><a href=\"/files/%s\" class=\"link\">%s</a></td>")
 							::format(file, filename)
-						if (k % 3) == 0 {
+						if (tot_files % 3) == 0 {
 							list[next_k + 1] = "</tr>"
 							next_k += 2
 						} else {
@@ -214,6 +216,7 @@ local patterns = {
 					next_k += 1
 				}
 				list[next_k] = "</table>"
+				list[1] = ("<br>%d files total<table>")::format(tot_files)
 				finish_request(res, "text/html", table.concat(list))
 			})
 		})
