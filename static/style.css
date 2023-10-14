@@ -83,8 +83,19 @@ fieldset {
 #file-list {
 	overflow-y: scroll;
 	height: 120px;
+	scrollbar-color: white black;
+	scrollbar-width: thin;
 }
 
 #preview-file {
 	height: auto;
+}
+
+.scroller::-webkit-scrollbar-track  {
+    background-color: black;
+}
+
+.scroller::-webkit-scrollbar-thumb {
+    height: 30px;
+    background-color: white;
 }
