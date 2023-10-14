@@ -91,11 +91,11 @@ fieldset {
 	height: auto;
 }
 
-.scroller::-webkit-scrollbar-track  {
+::-webkit-scrollbar-track  {
     background-color: black;
 }
 
-.scroller::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
     height: 30px;
     background-color: white;
 }
