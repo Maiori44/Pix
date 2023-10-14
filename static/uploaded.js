@@ -11,7 +11,8 @@ if (!file) {
 
 const copy_link_button = document.getElementsByClassName("uploaded-button")[0]
 copy_link_button.addEventListener("click", () => {
-	navigator.clipboard.writeText(window.location.protocol + "//" + window.location.host + "/files/" + file)
+	const url = window.location.protocol + "//" + window.location.host + "/files/" + encodeURIComponent(file)
+	navigator.clipboard.writeText(url)
 	copy_link_button.innerText = "Link copied!"
 	copy_link_button.classList.add("disabled-button")
 })
