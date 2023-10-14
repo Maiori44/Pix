@@ -16,7 +16,7 @@ password_check.addEventListener("submit", e => {
 			password_check.remove()
 			document.getElementById("title").innerText = "Currently uploaded files"
 			document.getElementById("file-list").insertAdjacentHTML("beforeend", text)
-			const img = document.getElementById("selected-file")
+			const img = document.getElementById("preview-file")
 			img.style.opacity = "0"
 			let target_opacity = 0
 			let next_target_opacity = 0

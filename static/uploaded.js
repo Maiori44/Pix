@@ -2,7 +2,7 @@ const file = new URLSearchParams(window.location.search).get("file")
 if (!file) {
 	document.getElementById("file-uploaded-text").innerText = "What are you doing here?"
 } else {
-	const img = document.getElementById("uploaded-file")
+	const img = document.getElementById("preview-file")
 	img.src = "/files/" + file
 	img.addEventListener("error", () => {
 		img.classList.add("invisible")
