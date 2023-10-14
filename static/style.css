@@ -8,6 +8,18 @@
         transform: scale(2);
 		transform-origin: top center;
     }
+
+	#selected-file {
+		min-width: 5%;
+		max-width: 10%;
+	}
+}
+
+@media screen and (max-width: 640px) {
+	#selected-file {
+		min-width: 20%;
+		max-width: 40%;
+	}
 }
 
 * {
@@ -75,6 +87,4 @@ fieldset {
 
 #selected-file {
 	height: auto;
-	min-width: 5%;
-	max-width: 10%;
 }
