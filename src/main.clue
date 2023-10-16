@@ -120,6 +120,10 @@ local patterns = {
 		local size = 0
 		$assert_password!({
 			local file = decoded_data::get("file")
+			if !file || file.value == "" {
+				send_error(res, 400, "No file was sent.")
+				return
+			}
 			local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
 			fs.writeFile("data/" .. filename, file.value, fn(err) {
 				res::setHeader("Location", "/uploaded.html?file=" .. filename)
