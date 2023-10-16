@@ -14,7 +14,8 @@ password_check.addEventListener("submit", e => {
 				return
 			}
 			password_check.remove()
-			document.getElementById("title").innerText = "Currently uploaded files"
+			const title = document.getElementById("title")
+			title.innerText = "Currently uploaded files"
 			document.getElementById("file-list").insertAdjacentHTML("beforeend", text)
 			const img = document.getElementById("preview-file")
 			const preview_text = document.getElementById("preview-text")
@@ -55,6 +56,16 @@ password_check.addEventListener("submit", e => {
 					img.style.opacity = opacity - 0.05					
 				}
 			}, 7)
+			const delete_button = document.getElementById("delete-button")
+			//delete_button.classList.remove("disabled-button")
+			delete_button.addEventListener("click", () => {
+				document.querySelectorAll("*").forEach(element => {
+					title.innerText = "Select file to delete.\nWell actually this feature is unfinished..."
+					element.style.color = "red"
+					element.style.borderColor = "red"
+					element.style.animation = "fade-red 0.5s linear"
+				})
+			})
 		})
 	})
 })
