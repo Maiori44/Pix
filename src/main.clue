@@ -21,7 +21,7 @@
 				print(err)
 				return
 			}
-			if decoded_data::get("password").value != password::match("[^\n]+") {
+			if decoded_data::get("password")?.value != password::match("[^\n]+") {
 				send_error(res, 401, "Wrong password.")
 				return
 			}
