@@ -166,6 +166,9 @@ local patterns = {
 			local size = 0
 			local tot_files = #files
 			local fn read_file_size(err, file_info) {
+				if !tot_files {
+					return
+				}
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
 					print(err)
@@ -180,9 +183,6 @@ local patterns = {
 			}
 			for k, file in files {
 				fs.stat("data/" .. file, read_file_size)
-				if !tot_files {
-					return
-				}
 			}
 		})
 	}
