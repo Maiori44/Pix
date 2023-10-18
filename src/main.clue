@@ -82,7 +82,7 @@ local actions = {
 				res::setHeader("Location", "/uploaded.html?file=" .. filename)
 				finish_request(res, "text/plain", "Upload complete", 303)
 			})
-			files.add_file(filename, file, req)
+			files.add_file(filename, file, decoded_data::get("ip")?.value)
 		}, {
 			size += #data
 			if size >= 20000000 {
@@ -166,7 +166,8 @@ local actions = {
 		$assert_method!("DELETE")
 		$assert_password!({
 			local filename = decoded_data::get("filename").value
-			if files.get_owner(filename) != req.socket::address().ip {
+			local owner = files.get_owner(filename)
+			if !owner || (owner != decoded_data::get("ip")?.value) {
 				send_error(res, 403, "File not uploaded by you.")
 				return
 			}

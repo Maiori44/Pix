@@ -34,10 +34,10 @@ return {
 	get_owner = fn(filename) {
 		return files[filename]?.owner
 	}
-	add_file = fn(filename, file, req) {
+	add_file = fn(filename, file, ip = "0.0.0.0") {
 		files[filename] = {
 			content_type = file.headers[2]::match("Content%-Type: (.+)")
-			owner = req.socket::address().ip
+			owner = ip
 		}
 		save_json()
 	}

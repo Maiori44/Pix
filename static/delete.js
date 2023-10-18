@@ -13,11 +13,12 @@ if (!file) {
 		element.style.color = "red"
 		element.style.borderColor = "red"
 	})
-	form.addEventListener("submit", e => {
+	form.addEventListener("submit", async e => {
 		e.preventDefault()
 		const form_data = new FormData()
 		form_data.append("password", document.getElementById("password").value)
 		form_data.append("filename", file)
+		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
 		fetch("/delete", {
 			method: "DELETE",
 			body: form_data,
