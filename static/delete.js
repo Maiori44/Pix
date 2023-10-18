@@ -17,12 +17,13 @@ if (!file) {
 		e.preventDefault()
 		const form_data = new FormData()
 		form_data.append("password", document.getElementById("password").value)
+		form_data.append("filename", file)
 		fetch("/delete", {
 			method: "DELETE",
 			body: form_data,
 		}).then(result => {
 			result.text().then(text => {
-				if (result.status != 200) {
+				if (result.status != 204) {
 					document.write(text.replace("/index.html", "/files.html"))
 				} else {
 					console.log(img.style.animation)
@@ -36,7 +37,9 @@ if (!file) {
 				document.querySelectorAll("*").forEach(element => {
 					element.style.animation = "fade-red-white 0.5s linear forwards"
 				})
-				img.style.animation = "fade-out 1s linear forwards"
+				if (!img.classList.contains("invisible")) {
+					img.style.animation = "fade-out 1s linear forwards"
+				}
 			})
 		})
 	})

@@ -186,7 +186,16 @@ local actions = {
 	}
 	delete = fn(req, res) {
 		$assert_method!("DELETE")
-		finish_request(res, "text/plain", "amogus")
+		$assert_password!({
+			fs.unlink("data/" .. decoded_data::get("filename").value, fn(err) {
+				if err {
+					send_error(res, 404, "File not found.")
+					print(err)
+					return
+				}
+				finish_request(res, nil, "", 204)
+			})
+		})
 	}
 }
 
