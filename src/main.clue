@@ -1,4 +1,5 @@
 @import "src.multipart"
+@import "files"
 
 @macro assert_method(wanted) {
 	if req.method != $wanted {
@@ -33,28 +34,10 @@
 local pprint = require("pretty-print").prettyPrint
 local querystring = require("querystring")
 local http = require("http")
-local json = require("json")
 local fs = require("fs")
 
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
 local error_html = assert(fs.readFileSync("src/error.html"))
-
-local content_types
-local json_file = fs.readFileSync("files.json")
-if json_file {
-	content_types = json.decode(json_file)
-} else {
-	content_types = {}
-	fs.writeFileSync("files.json", "{}")
-}
-
-{	//this json library gives quite an awful output...let's fix it
-	local encode = json.encode
-	local state = {indent = true, exception = print}
-	method json.encode(value) {
-		return encode(value, state)::gsub("  ", "\t")::gsub("\"%:([{\"])", "\": %1")
-	}
-}
 
 local fn finish_request(res, type, result, status_code) {
 	if res.headersSent {
@@ -99,12 +82,7 @@ local actions = {
 				res::setHeader("Location", "/uploaded.html?file=" .. filename)
 				finish_request(res, "text/plain", "Upload complete", 303)
 			})
-			content_types[filename] = file.headers[2]::match("Content%-Type: (.+)")
-			fs.writeFile("files.json", json.encode(content_types), fn(err) {
-				if err {
-					print(filename .. ": " .. err)
-				}
-			})
+			files.add_file(filename, file, req)
 		}, {
 			size += #data
 			if size >= 20000000 {
@@ -187,13 +165,19 @@ local actions = {
 	delete = fn(req, res) {
 		$assert_method!("DELETE")
 		$assert_password!({
-			fs.unlink("data/" .. decoded_data::get("filename").value, fn(err) {
+			local filename = decoded_data::get("filename").value
+			if files.get_owner(filename) != req.socket::address().ip {
+				send_error(res, 403, "File not uploaded by you.")
+				return
+			}
+			fs.unlink("data/" .. filename, fn(err) {
 				if err {
 					send_error(res, 404, "File not found.")
 					print(err)
 					return
 				}
 				finish_request(res, nil, "", 204)
+				files.remove_file(filename)
 			})
 		})
 	}
@@ -238,7 +222,7 @@ local patterns = {
 				print(err)
 				return
 			}
-			finish_request(res, content_types[filename] ?? "image/png", file)
+			finish_request(res, files.get_content_type(filename), file)
 		})
 	}
 	["^/+([%l_]+)$"] = fn(req, res, action) {
