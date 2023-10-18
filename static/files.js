@@ -27,15 +27,13 @@ password_check.addEventListener("submit", e => {
 				const upload_date = new Date(parseInt(link.href.match(/(\d+)-.+$/)[1]) * 1000)
 				link.addEventListener("mouseenter", () => {
 					preview_text.innerText = "Upload date: " + upload_date.toLocaleString()
-					preview_text.style.opacity = "1"
-					preview_text.style.animation = "fade-in 140ms linear"
+					preview_text.style.animation = "fade-in 140ms linear forwards"
 					old_src = img.src
 					img.src = link.href
 					next_target_opacity = 1
 				})
 				link.addEventListener("mouseleave", () => {
-					preview_text.style.opacity = "0"
-					preview_text.style.animation = "fade-out 140ms linear"
+					preview_text.style.animation = "fade-out 140ms linear forwards"
 					next_target_opacity = 0
 					target_opacity = 0
 				})
@@ -59,11 +57,10 @@ password_check.addEventListener("submit", e => {
 			const delete_button = document.getElementById("delete-button")
 			//delete_button.classList.remove("disabled-button")
 			delete_button.addEventListener("click", () => {
+				title.innerText = "Select file to delete.\nWell actually this feature is unfinished..."
+				preview_text.style.color = "red"
 				document.querySelectorAll("*").forEach(element => {
-					title.innerText = "Select file to delete.\nWell actually this feature is unfinished..."
-					element.style.color = "red"
-					element.style.borderColor = "red"
-					element.style.animation = "fade-red 0.5s linear"
+					element.style.animation = "fade-red 0.5s linear forwards"
 				})
 			})
 		})

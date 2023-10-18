@@ -9,13 +9,10 @@ form.addEventListener("submit", _ => {
 			dots = (dots + 1) % 4
 			form.innerHTML = "<h2>Uploading" + ".".repeat(dots) + "</h2>"
 		}, 500)
-		form.style.opacity = "1"
-		form.style.animation = "fade-in 140ms linear"
+		form.style.animation = "fade-in 140ms linear forwards"
 	}, {once: true})
-	form.style.opacity = "0"
-	text.style.opacity = "0"
-	form.style.animation = "fade-out 140ms linear"
-	text.style.animation = "fade-out 140ms linear"
+	form.style.animation = "fade-out 140ms linear forwards"
+	text.style.animation = "fade-out 140ms linear forwards"
 })
 
 const fieldset = document.getElementById("fieldset")
