@@ -96,7 +96,7 @@ password_check.addEventListener("submit", e => {
 					}
 				})
 			}
-			setup_button(delete_button, reupload_button, "delete", "/uploaded.html?file=", "red", "yellow")
+			setup_button(delete_button, reupload_button, "delete", "/delete.html?file=", "red", "yellow")
 			setup_button(reupload_button, delete_button, "reupload", "/uploaded.html?file=", "yellow", "red")
 		})
 	})

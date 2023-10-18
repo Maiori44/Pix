@@ -184,6 +184,10 @@ local actions = {
 			})
 		})
 	}
+	delete = fn(req, res) {
+		$assert_method!("DELETE")
+		finish_request(res, "text/plain", "amogus")
+	}
 }
 
 local patterns = {

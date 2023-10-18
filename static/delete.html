@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Pix</title>
+		<link rel="stylesheet" href="/style.css">
+	</head>
+	<body>
+		<center>
+			<fieldset>
+				<legend>
+					<span class="biggest">Pix</span> <span class="big">by Felicia.iso</span>
+				</legend>
+				<form id="delete-file-form">
+					<div id="warning-title" class="bigger">Are you sure about this?</div>
+					<div id="warning-info" class="big">
+						(This action cannot be undone!)<br>
+						Insert password to confirm...
+					</div>
+					<table id="password-table">
+						<tr>
+							<td width="40%"><b class="big">Password</b></td>
+							<td><input type="password" maxlength="1000" id="password" required></td>
+						</tr>
+					</table>
+					<br>
+					<input id="delete-button" type="submit" value="Submit and delete">
+					<a href="/files.html"><button class="two-buttons" type="button">Go back</button></a>
+				</form>
+			</fieldset>
+			<br><img id="preview-file">
+			<script src="/delete.js"></script>
+		</center>
+	</body>
+</html>
