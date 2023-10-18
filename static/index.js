@@ -1,12 +1,10 @@
 const form = document.getElementById("upload-form")
 
-fetch("https://api.ipify.org").then(result => {
-	result.text().then(text => {
-		document.getElementsByName("ip")[0].value = text
-		const upload_button = document.getElementsByClassName("disabled-button")[0]
-		upload_button.value = "Upload file"
-		upload_button.classList.remove("disabled-button")
-	})
+fetch("https://api.ipify.org").then(async result => {
+	document.getElementsByName("ip")[0].value = await result.text()
+	const upload_button = document.getElementsByClassName("disabled-button")[0]
+	upload_button.value = "Upload file"
+	upload_button.classList.remove("disabled-button")
 })
 
 form.addEventListener("submit", _ => {
@@ -45,10 +43,8 @@ window.setInterval(() => {
 	prev_height = container.offsetHeight
 }, 7)
 
-fetch("/storage_used").then(result => {
-	result.text().then(text => {
-		document.getElementById("storage-used").innerText = "Storage used: " + (result.status == 200
-			? text
-			: "error!")
-	})
+fetch("/storage_used").then(async result => {
+	document.getElementById("storage-used").innerText = "Storage used: " + (result.status == 200
+		? await result.text()
+		: "error!")
 })

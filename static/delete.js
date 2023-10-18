@@ -19,29 +19,27 @@ if (!file) {
 		form_data.append("password", document.getElementById("password").value)
 		form_data.append("filename", file)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
-		fetch("/delete", {
+		const result = await fetch("/delete", {
 			method: "DELETE",
 			body: form_data,
-		}).then(result => {
-			result.text().then(text => {
-				if (result.status != 204) {
-					document.write(text.replace("/index.html", "/files.html"))
-				} else {
-					console.log(img.style.animation)
-					document.getElementById("warning-title").innerText = "File deleted."
-					document.getElementById("warning-info").classList.add("invisible")
-					document.getElementById("delete-button").remove()
-					const password_table = document.getElementById("password-table")
-					password_table.classList.add("disabled-button")
-					password_table.style.opacity = "0"
-				}
-				document.querySelectorAll("*").forEach(element => {
-					element.style.animation = "fade-red-white 0.5s linear forwards"
-				})
-				if (!img.classList.contains("invisible")) {
-					img.style.animation = "fade-out 1s linear forwards"
-				}
-			})
 		})
+		const text = await result.text()
+		if (result.status != 204) {
+			document.write(text.replace("/index.html", "/files.html"))
+		} else {
+			console.log(img.style.animation)
+			document.getElementById("warning-title").innerText = "File deleted."
+			document.getElementById("warning-info").classList.add("invisible")
+			document.getElementById("delete-button").remove()
+			const password_table = document.getElementById("password-table")
+			password_table.classList.add("disabled-button")
+			password_table.style.opacity = "0"
+		}
+		document.querySelectorAll("*").forEach(element => {
+			element.style.animation = "fade-red-white 0.5s linear forwards"
+		})
+		if (!img.classList.contains("invisible")) {
+			img.style.animation = "fade-out 1s linear forwards"
+		}
 	})
 }
