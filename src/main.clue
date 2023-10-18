@@ -84,38 +84,8 @@ local fn convert_bytes(bytes) {
 
 local cache = {}
 
-local patterns = {
-	["^/+$"] = fn(_, res) {
-		res::setHeader("Location", "index.html")
-		finish_request(res, "text/plain", "Redirect to index.html", 303)
-	}
-	["^/+(%a+%.%a+)$"] = fn(req, res, filename) {
-		$assert_method!("GET")
-		if local cached = cache[filename] {
-			finish_request(res, cached.type, cached.file)
-		} else {
-			fs.readFile("static/" .. filename, fn(err, file) {
-				if err {
-					send_error(res, 404, "File not found.")
-					print(err)
-					return
-				}
-				local type = match filename::match("%.(%a+)$") {
-					"html" => "text/html",
-					"js" => "text/javascript",
-					"css" => "text/css",
-					"ttf" => "font/tff",
-					"ico" => "image/x-icon"
-				}
-				cache[filename] = {
-					type = $
-					file = $
-				}
-				finish_request(res, type, file)
-			})
-		}
-	}
-	["^/+upload$"] = fn(req, res) {
+local actions = {
+	upload = fn(req, res) {
 		$assert_method!("POST")
 		local size = 0
 		$assert_password!({
@@ -144,18 +114,7 @@ local patterns = {
 			}
 		})
 	}
-	["^/+files/+([^/]+)$"] = fn(req, res, filename) {
-		$assert_method!("GET")
-		fs.readFile("data/" .. filename, fn(err, file) {
-			if err {
-				send_error(res, 404, "File not found.")
-				print(err)
-				return
-			}
-			finish_request(res, content_types[filename] ?? "image/png", file)
-		})
-	}
-	["^/+storage_used$"] = fn(req, res) {
+	storage_used = fn(req, res) {
 		$assert_method!("GET")
 		fs.readdir("data", fn(err, files) {
 			if err {
@@ -186,7 +145,7 @@ local patterns = {
 			}
 		})
 	}
-	["/+file_list"] = fn(req, res) {
+	file_list = fn(req, res) {
 		$assert_method!("POST") //has to be POST since it has to have a body
 		$assert_password!({
 			fs.readdir("data", fn(err, files) {
@@ -224,6 +183,57 @@ local patterns = {
 				finish_request(res, "text/html", table.concat(list))
 			})
 		})
+	}
+}
+
+local patterns = {
+	["^/+$"] = fn(_, res) {
+		res::setHeader("Location", "index.html")
+		finish_request(res, "text/plain", "Redirect to index.html", 303)
+	}
+	["^/+(%a+%.%a+)$"] = fn(req, res, filename) {
+		$assert_method!("GET")
+		if local cached = cache[filename] {
+			finish_request(res, cached.type, cached.file)
+		} else {
+			fs.readFile("static/" .. filename, fn(err, file) {
+				if err {
+					send_error(res, 404, "File not found.")
+					print(err)
+					return
+				}
+				local type = match filename::match("%.(%a+)$") {
+					"html" => "text/html",
+					"js" => "text/javascript",
+					"css" => "text/css",
+					"ttf" => "font/tff",
+					"ico" => "image/x-icon"
+				}
+				cache[filename] = {
+					type = $
+					file = $
+				}
+				finish_request(res, type, file)
+			})
+		}
+	}
+	["^/+files/+([^/]+)$"] = fn(req, res, filename) {
+		$assert_method!("GET")
+		fs.readFile("data/" .. filename, fn(err, file) {
+			if err {
+				send_error(res, 404, "File not found.")
+				print(err)
+				return
+			}
+			finish_request(res, content_types[filename] ?? "image/png", file)
+		})
+	}
+	["^/+([%l_]+)$"] = fn(req, res, action) {
+		if local action = actions[action] {
+			action(req, res)
+		} else {
+			send_error(res, 404, "Unknown action.")
+		}
 	}
 }
 
