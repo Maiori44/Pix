@@ -23,13 +23,85 @@
 	}
 }
 
-@keyframes fade-red {
+@keyframes fade-white-red {
 	from {
+		scrollbar-color: lightgray black;
 		border-color: white;
 		color: white;
 	}
 
 	to {
+		scrollbar-color: darkred black;
+		border-color: red;
+		color: red;
+	}
+}
+
+@keyframes fade-red-white {
+	from {
+		scrollbar-color: darkred black;
+		border-color: red;
+		color: red;
+	}
+
+	to {
+		scrollbar-color: lightgray black;
+		border-color: white;
+		color: white;
+	}
+}
+
+@keyframes fade-red-yellow {
+	from {
+		scrollbar-color: darkred black;
+		border-color: red;
+		color: red;
+	}
+
+	to {
+		scrollbar-color: goldenrod black;
+		border-color: yellow;
+		color: yellow;
+	}
+}
+
+@keyframes fade-white-yellow {
+	from {
+		scrollbar-color: lightgray black;
+		border-color: white;
+		color: white;
+	}
+
+	to {
+		scrollbar-color: goldenrod black;
+		border-color: yellow;
+		color: yellow;
+	}
+}
+
+@keyframes fade-yellow-white {
+	from {
+		scrollbar-color: goldenrod black;
+		border-color: yellow;
+		color: yellow;
+	}
+
+	to {
+		scrollbar-color: lightgray black;
+		border-color: white;
+		color: white;
+	}
+}
+
+@keyframes fade-yellow-red {
+	from {
+		scrollbar-color: goldenrod black;
+		border-color: yellow;
+		color: yellow;
+	}
+
+	to {
+		scrollbar-color: darkred black;
 		border-color: red;
 		color: red;
 	}

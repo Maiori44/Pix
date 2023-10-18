@@ -164,7 +164,7 @@ local actions = {
 							list[next_k] = "<tr class=\"file\">"
 							next_k += 1
 						}
-						list[next_k] = ("<td class=\"file\"><a href=\"/files/%s\" class=\"link\">%s</a></td>")
+						list[next_k] = ("<td class=\"file\"><a href=\"%s\" class=\"link\">%s</a></td>")
 							::format(file, filename)
 						if (tot_files % 3) == 0 {
 							list[next_k + 1] = "</tr>"

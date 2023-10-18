@@ -22,10 +22,13 @@ password_check.addEventListener("submit", e => {
 			img.style.opacity = "0"
 			let target_opacity = 0
 			let next_target_opacity = 0
+			let path = "/files/"
 			let old_src
 			Array.from(document.getElementsByClassName("link")).forEach(link => {
 				const upload_date = new Date(parseInt(link.href.match(/(\d+)-.+$/)[1]) * 1000)
+				const filename = link.pathname.slice(1)
 				link.addEventListener("mouseenter", () => {
+					link.href = path + filename
 					preview_text.innerText = "Upload date: " + upload_date.toLocaleString()
 					preview_text.style.animation = "fade-in 140ms linear forwards"
 					old_src = img.src
@@ -55,14 +58,46 @@ password_check.addEventListener("submit", e => {
 				}
 			}, 7)
 			const delete_button = document.getElementById("delete-button")
-			//delete_button.classList.remove("disabled-button")
-			delete_button.addEventListener("click", () => {
-				title.innerText = "Select file to delete.\nWell actually this feature is unfinished..."
-				preview_text.style.color = "red"
-				document.querySelectorAll("*").forEach(element => {
-					element.style.animation = "fade-red 0.5s linear forwards"
+			const reupload_button = document.getElementById("reupload-button")
+			delete_button.og_name = delete_button.innerText
+			reupload_button.og_name = reupload_button.innerText
+			delete_button.classList.remove("disabled-button")
+			reupload_button.classList.remove("disabled-button")
+			function setup_button(button, other, cancellation, new_path, color, other_color) {
+				button.addEventListener("click", () => {
+					switch (button.innerText) {
+						case button.og_name: {
+							path = new_path
+							title.innerText = `Select file to ${cancellation}...`
+							button.innerText = `Cancel ${cancellation}`
+							preview_text.style.color = color
+							preview_text.style.opacity = "0"
+							const animation = other.innerText == other.og_name
+								? `fade-white-${color} 0.5s linear forwards`
+								: `fade-${other_color}-${color} 0.5s linear forwards`
+							console.log(animation)
+							document.querySelectorAll("*").forEach(element => {
+								element.style.animation = animation
+							})
+							other.innerText = other.og_name
+							break
+						}
+						case `Cancel ${cancellation}`: {
+							path = "/files/"
+							title.innerText = "Currently uploaded files"
+							button.innerText = button.og_name
+							preview_text.style.color = "white"
+							preview_text.style.opacity = "0"
+							document.querySelectorAll("*").forEach(element => {
+								element.style.animation = `fade-${color}-white 0.5s linear forwards`
+							})
+							break
+						}
+					}
 				})
-			})
+			}
+			setup_button(delete_button, reupload_button, "delete", "/uploaded.html?file=", "red", "yellow")
+			setup_button(reupload_button, delete_button, "reupload", "/uploaded.html?file=", "yellow", "red")
 		})
 	})
 })
