@@ -9,7 +9,7 @@ if (!file) {
 	})
 }
 
-const copy_link_button = document.getElementsByClassName("uploaded-button")[0]
+const copy_link_button = document.getElementsByClassName("two-buttons")[0]
 copy_link_button.addEventListener("click", () => {
 	const url = window.location.protocol + "//" + window.location.host + "/files/" + encodeURIComponent(file)
 	navigator.clipboard.writeText(url)
