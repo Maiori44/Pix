@@ -13,6 +13,11 @@ This distribution contains code from the following project (full license text be
 	License: MIT
 	Copyright (c) 2015 Mashape (https://www.mashape.com)
 
+ - lit-sqlite3
+	Website: https://github.com/SinisterRectus/lit-sqlite3
+	License: MIT
+	Copyright (C) 2014-2016 Stefano Peluchetti. All rights reserved.
+
 License text
 ============
 

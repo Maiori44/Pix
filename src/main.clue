@@ -1,4 +1,4 @@
-@import "src.multipart"
+@import "deps.multipart"
 @import "files"
 
 @macro assert_method(wanted) {
