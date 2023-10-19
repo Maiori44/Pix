@@ -31,7 +31,8 @@
 	})
 }
 
-local pprint = require("pretty-print").prettyPrint
+static pprint = require("pretty-print").prettyPrint
+
 local querystring = require("querystring")
 local http = require("http")
 local fs = require("fs")
