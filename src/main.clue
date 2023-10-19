@@ -78,7 +78,7 @@ local actions = {
 				return
 			}
 			local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
-			fs.writeFile("data/" .. filename, file.value, fn(err) {
+			fs.writeFile("data/files/" .. filename, file.value, fn(err) {
 				res::setHeader("Location", "/uploaded.html?file=" .. filename)
 				finish_request(res, "text/plain", "Upload complete", 303)
 			})
@@ -94,7 +94,7 @@ local actions = {
 	}
 	storage_used = fn(req, res) {
 		$assert_method!("GET")
-		fs.readdir("data", fn(err, files) {
+		fs.readdir("data/files", fn(err, files) {
 			if err {
 				send_error(res, 500, "Something unexpected happened.")
 				print(err)
@@ -119,14 +119,14 @@ local actions = {
 				}
 			}
 			for k, file in files {
-				fs.stat("data/" .. file, read_file_size)
+				fs.stat("data/files/" .. file, read_file_size)
 			}
 		})
 	}
 	file_list = fn(req, res) {
 		$assert_method!("POST") //has to be POST since it has to have a body
 		$assert_password!({
-			fs.readdir("data", fn(err, files) {
+			fs.readdir("data/files", fn(err, files) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")
 					print(err)
@@ -171,7 +171,7 @@ local actions = {
 				send_error(res, 403, "File not uploaded by you.")
 				return
 			}
-			fs.unlink("data/" .. filename, fn(err) {
+			fs.unlink("data/files/" .. filename, fn(err) {
 				if err {
 					send_error(res, 404, "File not found.")
 					print(err)
@@ -217,7 +217,7 @@ local patterns = {
 	}
 	["^/+files/+([^/]+)$"] = fn(req, res, filename) {
 		$assert_method!("GET")
-		fs.readFile("data/" .. filename, fn(err, file) {
+		fs.readFile("data/files/" .. filename, fn(err, file) {
 			if err {
 				send_error(res, 404, "File not found.")
 				print(err)

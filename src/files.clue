@@ -2,12 +2,12 @@ local json = require("json")
 local fs = require("fs")
 
 local files
-local json_file = fs.readFileSync("files.json")
+local json_file = fs.readFileSync("data/files.json")
 if json_file {
 	files = json.decode(json_file)
 } else {
 	files = {}
-	fs.writeFileSync("files.json", "{}")
+	fs.writeFileSync("data/files.json", "{}")
 }
 
 {	//this json library gives quite an awful output...let's fix it
@@ -19,7 +19,7 @@ if json_file {
 }
 
 local fn save_json() {
-	fs.writeFile("files.json", json.encode(files), fn(err) {
+	fs.writeFile("data/files.json", json.encode(files), fn(err) {
 		if err {
 			print(err)
 		}
