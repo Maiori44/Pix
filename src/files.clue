@@ -7,7 +7,7 @@
 	local all_codes = assert(fs.readFileSync("src/database.sql"))
 	local codes = {}
 
-	for name, code with all_codes::gmatch("---(%a+):(.-)---") {
+	for name, code with all_codes::gmatch("---([%a_]+):(.-)---") {
 		codes[name] = code
 	}
 
@@ -15,13 +15,13 @@
 
 	return {
 		get_content_type = fn(filename) {
-			
+			pprint(files::exec(codes.get::format("ContentType", filename)).ContentType)
 		}
 		get_owner = fn(filename) {
 			
 		}
 		add_file = fn(filename, file, ip = "0.0.0.0") {
-			files::exec("")
+			files::exec(codes.add_file::format(filename, file.headers[2]::match("Content%-Type: (.+)"), ip))
 		}
 		remove_file = fn(filename) {
 			
