@@ -1,5 +1,10 @@
 @import "deps.sqlite3"
 
+@define CONTENT_TYPE 1
+@define UPLOAD_DATE 2
+@define OWNER 3
+@define EDIT_DATE 4
+
 local fs = require("fs")
 
 local files = sqlite3.open("data/files.db")

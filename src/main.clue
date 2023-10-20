@@ -185,7 +185,7 @@ local actions = {
 		$assert_method!("DELETE")
 		$assert_password!({
 			local filename = decoded_data::get("filename").value
-			local owner = files.get_info(filename)?[3]
+			local owner = files.get_info(filename)?[$OWNER]
 			if !owner || (owner != decoded_data::get("ip")?.value) {
 				send_error(res, 403, "File not uploaded by you.")
 				return
@@ -206,7 +206,7 @@ local actions = {
 		$assert_password!({
 			local file = decoded_data::get("file")
 			local filename = file.headers[1]::match("filename=\"(.+)\"")
-			local owner = files.get_info(filename)?[3]
+			local owner = files.get_info(filename)?[$OWNER]
 			if !owner || (owner != decoded_data::get("ip")?.value) {
 				send_error(res, 403, "File not uploaded by you.")
 				return
@@ -265,8 +265,9 @@ local patterns = {
 						return
 					}
 					local info = files.get_info(filename)
-					res::setHeader("Upload-Date", info[2])
-					finish_request(res, info[1] || "image/png", file)
+					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
+					res::setHeader("Edit-Date", info[$EDIT_DATE])
+					finish_request(res, info[$CONTENT_TYPE] || "image/png", file)
 				})
 			}
 			"HEAD" => {
@@ -277,9 +278,10 @@ local patterns = {
 						return
 					}
 					local info = files.get_info(filename)
-					res::setHeader("Upload-Date", info[2])
+					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
+					res::setHeader("Edit-Date", info[$EDIT_DATE])
 					res::setHeader("Content-Length", file_info.size)
-					finish_request(res, info[1] || "image/png")
+					finish_request(res, info[$CONTENT_TYPE] || "image/png")
 				})
 			}
 			default => {
