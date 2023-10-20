@@ -5,7 +5,7 @@ if (!file) {
 	form.innerHTML = "You can't delete nothingness."
 } else {
 	const img = document.getElementById("preview-file")
-	img.src = "/files/" + file
+	img.src = "/files/" + encodeURIComponent(file)
 	img.addEventListener("error", () => {
 		img.classList.add("invisible")
 	})
