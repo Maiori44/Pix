@@ -5,14 +5,15 @@ CREATE TABLE IF NOT EXISTS Files (
 	content_type TEXT,
 	upload_date INTEGER,
 	owner TEXT,
+	edit_date INTEGER,
 	PRIMARY KEY(uuid)
 );
 ---get_info:
-SELECT content_type, upload_date, owner FROM Files WHERE uuid = ?;
+SELECT content_type, upload_date, owner, edit_date FROM Files WHERE uuid = ?;
 ---add_file:
-INSERT INTO Files VALUES (?, ?, ?, ?, ?);
+INSERT INTO Files VALUES (?, ?, ?, ?, ?, ?);
 ---delete_file:
 DELETE FROM Files WHERE uuid = ?;
 ---replace_file:
-UPDATE Files SET content_type = ? WHERE uuid = ?;
+UPDATE Files SET content_type = ?, edit_date = ? WHERE uuid = ?;
 ---

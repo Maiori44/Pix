@@ -69,7 +69,7 @@ return {
 		codes.delete_file::reset()::bind(parse_uuid(filename))::step()
 	}
 	replace_file = fn(filename, content_type) {
-		codes.replace_file::reset()::bind(content_type, parse_uuid(filename))::step()
+		codes.replace_file::reset()::bind(content_type, os.time(), parse_uuid(filename))::step()
 	}
 }
 
