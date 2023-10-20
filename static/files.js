@@ -39,6 +39,11 @@ password_check.addEventListener("submit", async e => {
 			preview_text.innerText = "Upload date: " + (head_result.status == 200
 				? new Date(parseInt(head_result.headers.get("Upload-Date")) * 1000).toLocaleString()
 				: "???")
+			const edit_date = head_result.headers.get("Edit-Date")
+			if (edit_date) {
+				preview_text.innerText += "\nEdit date: "
+				+ new Date(parseInt(edit_date) * 1000).toLocaleString()
+			}
 		})
 		link.addEventListener("mouseleave", () => {
 			preview_text.style.animation = "fade-out 140ms linear forwards"
