@@ -27,12 +27,13 @@ password_check.addEventListener("submit", async e => {
 	Array.from(document.getElementsByClassName("link")).forEach(link => {
 		const filename = link.pathname.slice(1)
 		link.addEventListener("mouseenter", async () => {
+			preview_text.innerText = "Upload date: Loading..."
 			link.href = path + filename
 			preview_text.style.animation = "fade-in 140ms linear forwards"
 			old_src = img.src
-			img.src = link.href
+			img.src = "/files/" + filename
 			next_target_opacity = 1
-			const head_result = await fetch(link.href, {
+			const head_result = await fetch(img.src, {
 				method: "HEAD"
 			})
 			preview_text.innerText = "Upload date: " + (head_result.status == 200
