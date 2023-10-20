@@ -1,6 +1,8 @@
-let file = new URLSearchParams(window.location.search).get("file")
+const params = new URLSearchParams(window.location.search)
+const title = document.getElementById("file-uploaded-text")
+let file = params.get("file")
 if (!file) {
-	document.getElementById("file-uploaded-text").innerText = "What are you doing here?"
+	title.innerText = "What are you doing here?"
 } else {
 	file = "/files/" + encodeURIComponent(file)
 	const img = document.getElementById("preview-file")
@@ -8,6 +10,10 @@ if (!file) {
 	img.addEventListener("error", () => {
 		img.classList.add("invisible")
 	})
+	if (params.get("replaced")) {
+		title.innerText = "File replaced!"
+		document.getElementsByClassName("two-buttons")[1].parentElement.href = "/files.html"
+	}
 }
 
 const copy_link_button = document.getElementsByClassName("two-buttons")[0]

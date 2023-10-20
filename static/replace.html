@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Pix</title>
+		<link rel="stylesheet" href="/style.css">
+	</head>
+	<body>
+		<center>
+			<fieldset>
+				<legend>
+					<span class="biggest">Pix</span> <span class="big">by Felicia.iso</span>
+				</legend>
+				<div id="title" class="bigger">Replace file</div>
+				<form id="replace-form">
+					<div class="big">(This action cannot be undone!)</div>
+					<b class="big">
+						<table id="password-table">
+							<tr>
+								<td width="40%">Password</td>
+								<td><input type="password" maxlength="1000" id="password" required></td>
+							</tr>
+							<tr>
+								<td>Replacement</td>
+								<td><input type="file" name="file" required></td>
+							</tr>
+						</table>
+					</b>
+					<br>
+					<input type="submit" value="Replace file">
+					<a href="/files.html"><button class="two-buttons" type="button">Go back</button></a>
+				</form>
+			</fieldset>
+			<br><img id="preview-file">
+			<script src="/replace.js"></script>
+		</center>
+	</body>
+</html>

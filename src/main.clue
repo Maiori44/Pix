@@ -88,6 +88,11 @@ local actions = {
 			local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
 			local truename = ("%s-%s")::format(uuid, filename)
 			fs.writeFile("data/files/" .. truename, file.value, fn(err) {
+				if err {
+					send_error(res, 500, "Something unexpected happened.")
+					print(err)
+					return
+				}
 				res::setHeader("Location", "/uploaded.html?file=" .. truename)
 				finish_request(res, "text/plain", "Upload complete", 303)
 			})
@@ -191,8 +196,29 @@ local actions = {
 					print(err)
 					return
 				}
-				finish_request(res, nil, "", 204)
+				finish_request(res, nil, nil, 204)
 				files.delete_file(filename)
+			})
+		})
+	}
+	replace = fn(req, res) {
+		$assert_method!("PUT")
+		$assert_password!({
+			local file = decoded_data::get("file")
+			local filename = file.headers[1]::match("filename=\"(.+)\"")
+			local owner = files.get_info(filename)?[3]
+			/*if !owner || (owner != decoded_data::get("ip")?.value) {
+				send_error(res, 403, "File not uploaded by you.")
+				return
+			}*/
+			fs.writeFile("data/files/" .. filename, file.value, fn(err) {
+				if err {
+					send_error(res, 500, "Something unexpected happened.")
+					print(err)
+					return
+				}
+				finish_request(res, nil, nil, 204)
+				files.replace_file(filename, file.headers[2]::match("Content%-Type: (.+)"))
 			})
 		})
 	}

@@ -63,11 +63,11 @@ password_check.addEventListener("submit", async e => {
 		}
 	}, 7)
 	const delete_button = document.getElementById("delete-button")
-	const reupload_button = document.getElementById("reupload-button")
+	const replace_button = document.getElementById("replace-button")
 	delete_button.og_name = delete_button.innerText
-	reupload_button.og_name = reupload_button.innerText
+	replace_button.og_name = replace_button.innerText
 	delete_button.classList.remove("disabled-button")
-	reupload_button.classList.remove("disabled-button")
+	replace_button.classList.remove("disabled-button")
 	function setup_button(button, other, cancellation, new_path, color, other_color) {
 		button.addEventListener("click", () => {
 			switch (button.innerText) {
@@ -101,6 +101,6 @@ password_check.addEventListener("submit", async e => {
 			}
 		})
 	}
-	setup_button(delete_button, reupload_button, "delete", "/delete.html?file=", "red", "yellow")
-	setup_button(reupload_button, delete_button, "reupload", "/uploaded.html?file=", "yellow", "red")
+	setup_button(delete_button, replace_button, "delete", "/delete.html?file=", "red", "yellow")
+	setup_button(replace_button, delete_button, "replace", "/replace.html?file=", "yellow", "red")
 })

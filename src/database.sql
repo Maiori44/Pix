@@ -13,4 +13,6 @@ SELECT content_type, upload_date, owner FROM Files WHERE uuid = ?
 INSERT INTO Files VALUES (?, ?, ?, ?, ?);
 ---delete_file:
 DELETE FROM Files WHERE uuid = ?
+---replace_file:
+UPDATE Files SET content_type = ? WHERE uuid = ?
 ---

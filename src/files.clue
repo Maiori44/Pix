@@ -68,5 +68,8 @@ return {
 	delete_file = fn(filename) {
 		codes.delete_file::reset()::bind(parse_uuid(filename))::step()
 	}
+	replace_file = fn(filename, content_type) {
+		codes.replace_file::reset()::bind(content_type, parse_uuid(filename))::step()
+	}
 }
 
