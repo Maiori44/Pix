@@ -150,7 +150,7 @@ local actions = {
 				local tot_files = 0
 				local next_k = 2
 				for _, file in files {
-					if local filename = file::match("%d+%-([^<>]+)") {
+					if local filename = file::match("%x+%-([^<>]+)") {
 						tot_files += 1
 						if (tot_files % 3) == 1 {
 							list[next_k] = "<tr class=\"file\">"
@@ -180,7 +180,7 @@ local actions = {
 		$assert_method!("DELETE")
 		$assert_password!({
 			local filename = decoded_data::get("filename").value
-			local owner = files.get_owner(filename)
+			local owner = files.get_info(filename)?[3]
 			if !owner || (owner != decoded_data::get("ip")?.value) {
 				send_error(res, 403, "File not uploaded by you.")
 				return

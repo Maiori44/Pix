@@ -15,7 +15,7 @@ for name, code with codes_reader {
 
 local fn parse_uuid(filename) {
 	local uuid = filename::match("^(%x+)-?")
-	if !uuid || (#uuid != 16 && #uuid != 10) {
+	if !uuid || (#uuid != 32 && #uuid != 10) {
 		return sqlite3.blob(filename)
 	} elseif #uuid == 10 && tonumber(uuid) {
 		return sqlite3.blob(uuid)
@@ -62,11 +62,8 @@ return {
 	get_info = fn(filename) {
 		return codes.get_info::reset()::bind(parse_uuid(filename))::step()
 	}
-	get_owner = fn(filename) {
-		
-	}
 	add_file = fn(uuid, filename, content_type, ip = "0.0.0.0") {
-		codes.add_file::reset()::bind(sqlite3.blob(uuid), filename, content_type, ip)::step()
+		codes.add_file::reset()::bind(sqlite3.blob(uuid), filename, content_type, os.time(), ip)::step()
 	}
 	remove_file = fn(filename) {
 		
