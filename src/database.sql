@@ -8,11 +8,11 @@ CREATE TABLE IF NOT EXISTS Files (
 	PRIMARY KEY(uuid)
 );
 ---get_info:
-SELECT content_type, upload_date, owner FROM Files WHERE uuid = ?
+SELECT content_type, upload_date, owner FROM Files WHERE uuid = ?;
 ---add_file:
 INSERT INTO Files VALUES (?, ?, ?, ?, ?);
 ---delete_file:
-DELETE FROM Files WHERE uuid = ?
+DELETE FROM Files WHERE uuid = ?;
 ---replace_file:
-UPDATE Files SET content_type = ? WHERE uuid = ?
+UPDATE Files SET content_type = ? WHERE uuid = ?;
 ---

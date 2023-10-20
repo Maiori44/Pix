@@ -207,10 +207,10 @@ local actions = {
 			local file = decoded_data::get("file")
 			local filename = file.headers[1]::match("filename=\"(.+)\"")
 			local owner = files.get_info(filename)?[3]
-			/*if !owner || (owner != decoded_data::get("ip")?.value) {
+			if !owner || (owner != decoded_data::get("ip")?.value) {
 				send_error(res, 403, "File not uploaded by you.")
 				return
-			}*/
+			}
 			fs.writeFile("data/files/" .. filename, file.value, fn(err) {
 				if err {
 					send_error(res, 500, "Something unexpected happened.")

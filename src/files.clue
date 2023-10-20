@@ -28,7 +28,7 @@ local fn parse_uuid(filename) {
 	))
 }
 
-{
+/*{
 	local json = fs.readFileSync("data/files.json")
 	if json {
 		local add_file = codes.$
@@ -56,7 +56,7 @@ local fn parse_uuid(filename) {
 		}
 		fs.unlinkSync("data/files.json")
 	}
-}
+}*/
 
 return {
 	get_info = fn(filename) {
