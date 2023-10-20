@@ -65,8 +65,8 @@ return {
 	add_file = fn(uuid, filename, content_type, ip = "0.0.0.0") {
 		codes.add_file::reset()::bind(sqlite3.blob(uuid), filename, content_type, os.time(), ip)::step()
 	}
-	remove_file = fn(filename) {
-		
+	delete_file = fn(filename) {
+		codes.delete_file::reset()::bind(parse_uuid(filename))::step()
 	}
 }
 

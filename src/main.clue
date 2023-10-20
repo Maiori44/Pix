@@ -192,7 +192,7 @@ local actions = {
 					return
 				}
 				finish_request(res, nil, "", 204)
-				files.remove_file(filename)
+				files.delete_file(filename)
 			})
 		})
 	}
