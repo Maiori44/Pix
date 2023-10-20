@@ -1,17 +1,14 @@
 ---init:
 CREATE TABLE IF NOT EXISTS Files (
-	FileName TEXT,
-	ContentType TEXT,
-	Owner TEXT
+    uuid BLOB NOT NULL,
+    filename TEXT NOT NULL,
+    content_type TEXT,
+    upload_date INTEGER,
+    owner TEXT,
+    PRIMARY KEY(uuid)
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS ui_filename
-ON Files (FileName);
----get:
-SELECT %s
-FROM Files
-WHERE FileName = '%s'
+---get_info:
+SELECT content_type, upload_date, owner FROM Files WHERE uuid = ?
 ---add_file:
-INSERT INTO Files
-VALUES ('%s', '%s', '%s');
+INSERT INTO Files VALUES (?, ?, ?, ?, ?);
 ---

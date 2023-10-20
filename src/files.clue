@@ -1,79 +1,75 @@
-@ifndef JSON {
-	@import "deps.sqlite3"
+@import "deps.sqlite3"
 
-	local fs = require("fs")
+local fs = require("fs")
 
-	local files = sqlite3.open("data/files.db")
-	local all_codes = assert(fs.readFileSync("src/database.sql"))
-	local codes = {}
+local files = sqlite3.open("data/files.db")
+local all_codes = assert(fs.readFileSync("src/database.sql"))
+local codes_reader = all_codes::gmatch("---([%a_]+):(.-)---")
+local codes = {}
 
-	for name, code with all_codes::gmatch("---([%a_]+):(.-)---") {
-		codes[name] = code
+files::exec(select(2, codes_reader()))
+
+for name, code with codes_reader {
+	codes[name] = files::prepare(code)
+}
+
+local fn parse_uuid(filename) {
+	local uuid = filename::match("^(%x+)-?")
+	if !uuid || (#uuid != 16 && #uuid != 10) {
+		return sqlite3.blob(filename)
+	} elseif #uuid == 10 && tonumber(uuid) {
+		return sqlite3.blob(uuid)
 	}
+	return sqlite3.blob(("I4I4I4I4")::pack(
+		tonumber(uuid::sub(1, 8), 16),
+		tonumber(uuid::sub(9, 16), 16),
+		tonumber(uuid::sub(17, 24), 16),
+		tonumber(uuid::sub(25, 32), 16)
+	))
+}
 
-	files::exec(codes.init)
-
-	return {
-		get_content_type = fn(filename) {
-			pprint(files::exec(codes.get::format("ContentType", filename)).ContentType)
+{
+	local json = fs.readFileSync("data/files.json")
+	if json {
+		local add_file = codes.$
+		local json = require("json").decode($)
+		for k, v of json {
+			local timestamp, filename = k::match("(%d+)-(.+)")
+			add_file::reset()::bind(
+				parse_uuid(k),
+				filename || k,
+				v.content_type || v,
+				timestamp,
+				v.owner
+			)::step()
 		}
-		get_owner = fn(filename) {
-			
-		}
-		add_file = fn(filename, file, ip = "0.0.0.0") {
-			files::exec(codes.add_file::format(filename, file.headers[2]::match("Content%-Type: (.+)"), ip))
-		}
-		remove_file = fn(filename) {
-			
-		}
-	}
-} @else {
-	local json = require("json")
-	local fs = require("fs")
-
-	local files
-	local json_file = fs.readFileSync("data/files.json")
-	if json_file {
-		files = json.decode(json_file)
-	} else {
-		files = {}
-		fs.writeFileSync("data/files.json", "{}")
-	}
-
-	{	//this json library gives quite an awful output...let's fix it
-		local encode = json.encode
-		local state = {indent = true, exception = print}
-		method json.encode(value) {
-			return encode(value, state)::gsub("  ", "\t")::gsub("\"%:([{\"])", "\": %1")
-		}
-	}
-
-	local fn save_json() {
-		fs.writeFile("data/files.json", json.encode(files), fn(err) {
-			if err {
-				print(err)
+		for truename with fs.scandirSync("data/files") {
+			if !json[truename] {
+				local timestamp, filename = truename::match("(%d+)-(.+)")
+				add_file::reset()::bind(
+					parse_uuid(truename),
+					filename || truename,
+					nil,
+					timestamp
+				)::step()
 			}
-		})
-	}
-
-	return {
-		get_content_type = fn(filename) {
-			local file = files[filename] || "image/png"
-			return file.content_type || file
 		}
-		get_owner = fn(filename) {
-			return files[filename]?.owner
-		}
-		add_file = fn(filename, file, ip = "0.0.0.0") {
-			files[filename] = {
-				content_type = file.headers[2]::match("Content%-Type: (.+)")
-				owner = ip
-			}
-			save_json()
-		}
-		remove_file = fn(filename) {
-			files[filename] = nil
-			save_json()
-		}
+		fs.unlinkSync("data/files.json")
 	}
 }
+
+return {
+	get_info = fn(filename) {
+		return codes.get_info::reset()::bind(parse_uuid(filename))::step()
+	}
+	get_owner = fn(filename) {
+		
+	}
+	add_file = fn(uuid, filename, content_type, ip = "0.0.0.0") {
+		codes.add_file::reset()::bind(sqlite3.blob(uuid), filename, content_type, ip)::step()
+	}
+	remove_file = fn(filename) {
+		
+	}
+}
+

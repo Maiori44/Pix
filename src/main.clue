@@ -48,7 +48,9 @@ local fn finish_request(res, type, result, status_code) {
 		res.statusCode = status_code
 	}
 	res::setHeader("Content-Type", type)
-	res::setHeader("Content-Length", #result)
+	if result {
+		res::setHeader("Content-Length", #result)
+	}
 	res::finish(result)
 }
 
@@ -78,12 +80,23 @@ local actions = {
 				send_error(res, 400, "No file was sent.")
 				return
 			}
-			local filename = ("%d-%s")::format(os.time(), file.headers[1]::match("filename=\"(.+)\""))
-			fs.writeFile("data/files/" .. filename, file.value, fn(err) {
-				res::setHeader("Location", "/uploaded.html?file=" .. filename)
+			local r1 = math.random(0, 2^32-1)
+			local r2 = ((math.random(0, 2^32-1) & 0xFFFF4FFF) | 0x4000) % 2^32
+			local r3 = ((math.random(0, 2^32-1) & 0xBFFFFFFF) | 0x80000000) % 2^32
+			local r4 = math.random(0, 2^32-1)
+			local filename = file.headers[1]::match("filename=\"(.+)\"")
+			local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
+			local truename = ("%s-%s")::format(uuid, filename)
+			fs.writeFile("data/files/" .. truename, file.value, fn(err) {
+				res::setHeader("Location", "/uploaded.html?file=" .. truename)
 				finish_request(res, "text/plain", "Upload complete", 303)
 			})
-			files.add_file(filename, file, decoded_data::get("ip")?.value)
+			files.add_file(
+				string.pack("I4I4I4I4", r1, r2, r3, r4),
+				filename,
+				file.headers[2]::match("Content%-Type: (.+)"),
+				decoded_data::get("ip")?.value
+			)
 		}, {
 			size += #data
 			if size >= 20000000 {
@@ -217,15 +230,36 @@ local patterns = {
 		}
 	}
 	["^/+files/+([^/]+)$"] = fn(req, res, filename) {
-		$assert_method!("GET")
-		fs.readFile("data/files/" .. filename, fn(err, file) {
-			if err {
-				send_error(res, 404, "File not found.")
-				print(err)
-				return
+		match req.method {
+			"GET" => {
+				fs.readFile("data/files/" .. filename, fn(err, file) {
+					if err {
+						send_error(res, 404, "File not found.")
+						print(err)
+						return
+					}
+					local info = files.get_info(filename)
+					res::setHeader("Upload-Date", info[2])
+					finish_request(res, info[1] || "image/png", file)
+				})
 			}
-			finish_request(res, files.get_content_type(filename), file)
-		})
+			"HEAD" => {
+				fs.stat("data/files/" .. filename, fn(err, file_info) {
+					if err {
+						send_error(res, 404, "File not found.")
+						print(err)
+						return
+					}
+					local info = files.get_info(filename)
+					res::setHeader("Upload-Date", info[2])
+					res::setHeader("Content-Length", file_info.size)
+					finish_request(res, info[1] || "image/png")
+				})
+			}
+			default => {
+				send_error(res, 400, "Wrong request method.")
+			}
+		}
 	}
 	["^/+([%l_]+)$"] = fn(req, res, action) {
 		if local action = actions[action] {

@@ -25,15 +25,19 @@ password_check.addEventListener("submit", async e => {
 	let path = "/files/"
 	let old_src
 	Array.from(document.getElementsByClassName("link")).forEach(link => {
-		const upload_date = new Date(parseInt(link.href.match(/(\d+)-.+$/)[1]) * 1000)
 		const filename = link.pathname.slice(1)
-		link.addEventListener("mouseenter", () => {
+		link.addEventListener("mouseenter", async () => {
 			link.href = path + filename
-			preview_text.innerText = "Upload date: " + upload_date.toLocaleString()
 			preview_text.style.animation = "fade-in 140ms linear forwards"
 			old_src = img.src
 			img.src = link.href
 			next_target_opacity = 1
+			const head_result = await fetch(link.href, {
+				method: "HEAD"
+			})
+			preview_text.innerText = "Upload date: " + (head_result.status == 200
+				? new Date(parseInt(head_result.headers.get("Upload-Date")) * 1000).toLocaleString()
+				: "???")
 		})
 		link.addEventListener("mouseleave", () => {
 			preview_text.style.animation = "fade-out 140ms linear forwards"
