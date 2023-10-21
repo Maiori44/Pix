@@ -1,7 +1,9 @@
 const form = document.getElementById("replace-form")
+const title = document.getElementById("title")
 
 const file = new URLSearchParams(window.location.search).get("file")
 if (!file) {
+	title.classList.add("invisible")
 	form.innerHTML = "<div class=\"bigger\">Replace nothingness?</div>" + 
 	"That's just <a href=\"/index.html\">uploading</a> something new..."
 } else {
@@ -25,7 +27,6 @@ if (!file) {
 	})
 	form.addEventListener("submit", async e => {
 		e.preventDefault()
-		const title = document.getElementById("title")
 		form.addEventListener("animationend", () => {
 			form.innerHTML = "<h2>Uploading</h2>"
 			let dots = 0
