@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Files (
 ---get_info:
 SELECT content_type, upload_date, owner, edit_date FROM Files WHERE uuid = ?;
 ---add_file:
-INSERT INTO Files VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO Files VALUES (?, ?, ?, ?, ?, NULL);
 ---delete_file:
 DELETE FROM Files WHERE uuid = ?;
 ---replace_file:
