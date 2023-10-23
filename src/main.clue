@@ -185,7 +185,7 @@ local actions = {
 		$assert_method!("DELETE")
 		$assert_password!({
 			local filename = decoded_data::get("filename").value
-			local owner = files.get_info(filename)?[$OWNER]
+			local owner = files.get_info(filename)[$OWNER]
 			if !owner || (owner != decoded_data::get("ip")?.value) {
 				send_error(res, 403, "File not uploaded by you.")
 				return
@@ -206,7 +206,7 @@ local actions = {
 		$assert_password!({
 			local file = decoded_data::get("file")
 			local filename = file.headers[1]::match("filename=\"(.+)\"")
-			local owner = files.get_info(filename)?[$OWNER]
+			local owner = files.get_info(filename)[$OWNER]
 			if !owner || (owner != decoded_data::get("ip")?.value) {
 				send_error(res, 403, "File not uploaded by you.")
 				return

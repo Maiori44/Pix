@@ -65,7 +65,7 @@ local fn parse_uuid(filename) {
 
 return {
 	get_info = fn(filename) {
-		return codes.get_info::reset()::bind(parse_uuid(filename))::step()
+		return codes.get_info::reset()::bind(parse_uuid(filename))::step() || {}
 	}
 	add_file = fn(uuid, filename, content_type, ip = "0.0.0.0") {
 		codes.add_file::reset()::bind(sqlite3.blob(uuid), filename, content_type, os.time(), ip)::step()
