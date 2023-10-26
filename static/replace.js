@@ -15,5 +15,5 @@ if (!file) {
 	document.querySelectorAll("*").forEach(element => {
 		element.style.animation = `fade-yellow-white 0.5s linear forwards`
 	})
-	set_upload_file_logic(form, true)
+	set_upload_file_logic(form, file)
 }
