@@ -19,18 +19,17 @@
 							<table>
 								<tr>
 									<td>Password</td>
-									<td><input type="password" maxlength="1000" name="password" required></td>
+									<td><input type="password" maxlength="1000" id="password" required></td>
 								</tr>
 								<tr>
 									<td>File to upload</td>
-									<td><input type="file" name="file" required></td>
+									<td><input type="file" id="file" required></td>
 								</tr>
 							</table>
 						</h3>
-						<input type="hidden" name="ip">
 						<span id="bottom">
 							<a href="/files.html"><button type="button">See all files</button></a>
-							<input type="submit" value="Loading..." class="disabled-button">
+							<input type="submit" value="Upload file">
 							<small id="storage-used">Loading...</small>
 						</span>
 					</form>

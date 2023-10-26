@@ -34,7 +34,9 @@
 static pprint = require("pretty-print").prettyPrint
 
 local querystring = require("querystring")
+local timer = require("timer")
 local http = require("http")
+local uv = require("uv")
 local fs = require("fs")
 
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
@@ -224,6 +226,8 @@ local actions = {
 	}
 }
 
+local timeouts = {}
+
 local patterns = {
 	["^/+$"] = fn(_, res) {
 		res::setHeader("Location", "index.html")
@@ -296,16 +300,71 @@ local patterns = {
 			send_error(res, 404, "Unknown action.")
 		}
 	}
+	["^/+upload/+(%d+)/(%l+)"] = fn(req, res, id, action) {
+		$assert_method!("POST")
+		$assert_password!({
+			if timeouts[id] == false {
+				send_error(res, 408, "Upload timeout.")
+				return
+			}
+			local path = "/tmp/Pix/" .. id
+			match action {
+				"fragment" => {
+					fs.open(path, "a", fn(err, fd) {
+						if err {
+							send_error(res, 500, "Something unexpected happened.")
+							print(err)
+							return
+						}
+						local data = {}
+						for byte with decoded_data::get("fragment").value::gmatch("(%d+),?") {
+							table.insert(data, byte::char())
+						}
+						fs.write(fd, 0, table.concat(data), fn(err) {
+							if err {
+								send_error(res, 500, "Something unexpected happened.")
+								print(err)
+							} else {
+								finish_request(res, nil, nil, 204)
+								if local timeout = timeouts[id] {
+									uv.timer_again(timeout)
+								} else {
+									timeouts[id] = timer.setInterval(60000, fn {
+										timer.clearTimer(timeouts[id])
+										fs.unlink(path)
+										timeouts[id] = false
+										timer.setTimeout(300000, fn {
+											timeouts[id] = nil
+										})
+									})
+								}
+							}
+							fs.close(fd)
+						})
+					})
+				}
+			}
+		})
+	}
 }
 
 http.createServer(fn(req, res) {
 	local path = querystring.urldecode(http.parseUrl(req.url).pathname)
 	for pattern, func of patterns {
-		if local matched = path::match(pattern) {
-			func(req, res, matched)
+		local m1, m2 = path::match(pattern)
+		if m1 {
+			func(req, res, m1, m2)
 			collectgarbage()
 			return
 		}
 	}
 	send_error(res, 404, "Page not found.")
 })::listen(port, ip)
+
+if fs.existsSync("/tmp/Pix") {
+	for name with assert(fs.scandirSync("/tmp/Pix")) {
+		assert(fs.unlinkSync("/tmp/Pix/" .. name))
+	}
+	assert(fs.rmdirSync("/tmp/Pix"))
+}
+assert(fs.mkdirSync("/tmp/Pix"))
