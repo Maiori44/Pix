@@ -8,10 +8,9 @@
 	}
 }
 
-@macro assert_password(code, ...) {
+@macro assert_password(code) {
 	local body_data = {}
 	req::on("data", fn(data) {
-		${$vararg}
 		table.insert(body_data, data)
 	})
 	req::on("end", fn {
@@ -33,6 +32,7 @@
 
 static pprint = require("pretty-print").prettyPrint
 
+local childprocess = require('childprocess')
 local querystring = require("querystring")
 local timer = require("timer")
 local http = require("http")
@@ -82,10 +82,10 @@ local actions = {
 				send_error(res, 400, "No file was sent.")
 				return
 			}
-			local r1 = math.random(0, 2^32-1)
-			local r2 = ((math.random(0, 2^32-1) & 0xFFFF4FFF) | 0x4000) % 2^32
-			local r3 = ((math.random(0, 2^32-1) & 0xBFFFFFFF) | 0x80000000) % 2^32
-			local r4 = math.random(0, 2^32-1)
+			local r1 = math.random(0, 2 ^ 32 - 1)
+			local r2 = ((math.random(0, 2 ^ 32 - 1) & 0xFFFF4FFF) | 0x4000) % 2 ^ 32
+			local r3 = ((math.random(0, 2 ^ 32 - 1) & 0xBFFFFFFF) | 0x80000000) % 2 ^ 32
+			local r4 = math.random(0, 2 ^ 32 - 1)
 			local filename = file.headers[1]::match("filename=\"(.+)\"")
 			local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
 			local truename = ("%s-%s")::format(uuid, filename)
@@ -104,13 +104,6 @@ local actions = {
 				file.headers[2]::match("Content%-Type: (.+)"),
 				decoded_data::get("ip")?.value
 			)
-		}, {
-			size += #data
-			if size >= 20000000 {
-				send_error(res, 413, "File too large.")
-				req::removeAllListeners()
-				return
-			}
 		})
 	}
 	storage_used = fn(req, res) {
@@ -228,12 +221,20 @@ local actions = {
 
 local timeouts = {}
 
+local fn clear_timeout(id) {
+	timer.clearTimer(timeouts[id])
+	timeouts[id] = false
+	timer.setTimeout(300000, fn {
+		timeouts[id] = nil
+	})
+}
+
 local patterns = {
 	["^/+$"] = fn(_, res) {
 		res::setHeader("Location", "index.html")
 		finish_request(res, "text/plain", "Redirect to index.html", 303)
 	}
-	["^/+(%a+%.%a+)$"] = fn(req, res, filename) {
+	["^/+([%a_]+%.%a+)$"] = fn(req, res, filename) {
 		$assert_method!("GET")
 		if local cached = cache[filename] {
 			finish_request(res, cached.type, cached.file)
@@ -330,18 +331,49 @@ local patterns = {
 									uv.timer_again(timeout)
 								} else {
 									timeouts[id] = timer.setInterval(60000, fn {
-										timer.clearTimer(timeouts[id])
 										fs.unlink(path)
-										timeouts[id] = false
-										timer.setTimeout(300000, fn {
-											timeouts[id] = nil
-										})
+										clear_timeout(id)
 									})
 								}
 							}
 							fs.close(fd)
 						})
 					})
+				}
+				"finish" => {
+					if !timeouts[id] {
+						send_error(res, 400, "No file data was ever sent.")
+						return
+					}
+					local filename = decoded_data::get("filename")?.value
+					if !filename {
+						send_error(res, 400, "No file name was sent.")
+						return
+					}
+					clear_timeout(id)
+					local r1 = math.random(0, 2 ^ 32 - 1)
+					local r2 = ((math.random(0, 2 ^ 32 - 1) & 0xFFFF4FFF) | 0x4000) % 2 ^ 32
+					local r3 = ((math.random(0, 2 ^ 32 - 1) & 0xBFFFFFFF) | 0x80000000) % 2 ^ 32
+					local r4 = math.random(0, 2 ^ 32 - 1)
+					local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
+					local truename = ("%s-%s")::format(uuid, filename)
+					childprocess.exec(("mv /tmp/Pix/%s 'data/files/%s'")::format(id, truename), fn(err) {
+						if err {
+							send_error(res, 500, "Something unexpected happened.")
+							pprint(err)
+							return
+						}
+						finish_request(res, "text/plain", truename, 200)
+					})
+					files.add_file(
+						string.pack("I4I4I4I4", r1, r2, r3, r4),
+						filename,
+						decoded_data::get("content-type")?.value,
+						decoded_data::get("ip")?.value
+					)
+				}
+				default => {
+					send_error(res, 404, "Unknown action.")
 				}
 			}
 		})

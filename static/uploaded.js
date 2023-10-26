@@ -10,7 +10,7 @@ if (!file) {
 	img.addEventListener("error", () => {
 		img.classList.add("invisible")
 	})
-	if (params.get("replaced")) {
+	if (params.get("replaced") == "true") {
 		title.innerText = "File replaced!"
 		document.getElementsByClassName("two-buttons")[1].parentElement.href = "/files.html"
 	}
