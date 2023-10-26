@@ -220,13 +220,11 @@ local actions = {
 }
 
 local timeouts = {}
+local fragments_sizes = {}
 
 local fn clear_timeout(id) {
-	timer.clearTimer(timeouts[id])
-	timeouts[id] = false
-	timer.setTimeout(300000, fn {
-		timeouts[id] = nil
-	})
+	uv.timer_set_repeat(timeouts[id], 1)
+	uv.timer_again(timeouts[id])
 }
 
 local patterns = {
@@ -331,9 +329,26 @@ local patterns = {
 									uv.timer_again(timeout)
 								} else {
 									timeouts[id] = timer.setInterval(120000, fn {
-										fs.unlink(path)
-										clear_timeout(id)
+										timer.clearTimer(timeouts[id])
+										if fragments_sizes[id] {
+											fs.unlink(path)
+										} else {
+											fragments_sizes[id] = nil
+										}
+										timeouts[id] = false
+										timer.setTimeout(300000, fn {
+											timeouts[id] = nil
+										})
 									})
+								}
+								if fragments_sizes[id] {
+									fragments_sizes[id] += size
+								} else {
+									fragments_sizes[id] = size
+								}
+								if fragments_sizes[id] >= 4000000000 {
+									send_error(res, 413, "File too large.")
+									clear_timeout(id)
 								}
 							}
 							fs.close(fd)
@@ -341,6 +356,7 @@ local patterns = {
 					})
 				}
 				"finish" => {
+					clear_timeout(id)
 					if !timeouts[id] {
 						send_error(res, 400, "No file data was ever sent.")
 						return
@@ -356,13 +372,13 @@ local patterns = {
 					local r4 = math.random(0, 2 ^ 32 - 1)
 					local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
 					local truename = ("%s-%s")::format(uuid, filename)
+					fragments_sizes[id] = nil
 					childprocess.exec(("mv /tmp/Pix/%s 'data/files/%s'")::format(id, truename), fn(err, ...) {
 						if err {
 							send_error(res, 500, "Something unexpected happened.")
 							pprint(err, ...)
 							return
 						}
-						clear_timeout(id)
 						finish_request(res, "text/plain", truename, 200)
 						files.add_file(
 							string.pack("I4I4I4I4", r1, r2, r3, r4),
@@ -373,6 +389,7 @@ local patterns = {
 					})
 				}
 				"replace" => {
+					clear_timeout(id)
 					if !timeouts[id] {
 						send_error(res, 400, "No file data was ever sent.")
 						return
@@ -387,6 +404,7 @@ local patterns = {
 						send_error(res, 403, "File not uploaded by you.")
 						return
 					}
+					fragments_sizes[id] = nil
 					childprocess.exec(
 						("rm 'data/files/%s' && mv /tmp/Pix/%s 'data/files/%s'")::format(
 							filename, id, filename
@@ -397,7 +415,6 @@ local patterns = {
 								pprint(err, ...)
 								return
 							}
-							clear_timeout(id)
 							finish_request(res, "text/plain", filename, 200)
 							files.replace_file(filename, decoded_data::get("content-type")?.value)
 						}
