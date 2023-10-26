@@ -21,10 +21,6 @@ if (!file) {
 		upload_button.value = "Replace file"
 		upload_button.classList.remove("disabled-button")
 	})*/
-	const file_input = document.getElementsByName("file")[0]
-	file_input.addEventListener("change", () => {
-		console.log(file_input)
-	})
 	form.addEventListener("submit", async e => {
 		e.preventDefault()
 		form.addEventListener("animationend", () => {
@@ -40,7 +36,7 @@ if (!file) {
 		title.style.animation = "fade-out 140ms linear forwards"
 		const form_data = new FormData()
 		form_data.append("password", document.getElementById("password").value)
-		form_data.append("file", file_input.files[0], file)
+		form_data.append("file", document.getElementsByName("file")[0].files[0], file)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
 		const result = await fetch("/replace", {
 			method: "PUT",
