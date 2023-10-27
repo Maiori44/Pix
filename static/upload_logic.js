@@ -15,7 +15,7 @@ function set_upload_file_logic(form, replace) {
 				uploading_text.innerText = dots_text + ".".repeat(dots)
 			}, 500)
 			form.style.animation = "fade-in 140ms linear forwards"
-		}, {once: true})
+		}, { once: true })
 		form.style.animation = "fade-out 140ms linear forwards"
 		text.style.animation = "fade-out 140ms linear forwards"
 		const id = Date.now() * 100 + Math.floor(Math.random() * 1000)
@@ -23,22 +23,36 @@ function set_upload_file_logic(form, replace) {
 		form_data.append("password", document.getElementById("password").value)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
 		let uploaded_size = 0
-		for await (const chunk of file.stream()) {
-			form_data.set("fragment", chunk)
-			const result = await fetch(`/upload/${id}/fragment`, {
-				method: "POST",
-				body: form_data
-			})
-			if (result.status != 204) {
-				document.clearInterval(dots_interval)
-				document.write(await result.text())
-				break
+		const reader = file.stream().getReader({ mode: "byob" })
+		async function send_fragment(promise) {
+			const { value: value1, done: done1 } = await reader.read(new Uint8Array(65536))
+			const { value: value2, done: done2 } = await reader.read(new Uint8Array(65536))
+			const buffer = new Uint8Array(value1.length + value2.length)
+			buffer.set(value1, 0)
+			buffer.set(value2, value1.length)
+			if (promise) {
+				await promise
 			}
-			uploaded_size += chunk.length
-			if (percentage) {
-				percentage.innerText = `${Math.floor((uploaded_size / file.size) * 100000) / 1000}%`
+			if (!(done1 && done2)) {
+				form_data.set("fragment", buffer)
+				const promise = fetch(`/upload/${id}/fragment`, {
+					method: "POST",
+					body: form_data
+				}).then(async result => {
+					if (result.status != 204) {
+						document.clearInterval(dots_interval)
+						document.write(await result.text())
+						return
+					}
+					uploaded_size += buffer.length
+					if (percentage) {
+						percentage.innerText = `${Math.floor((uploaded_size / file.size) * 100000) / 1000}%`
+					}
+				})
+				return send_fragment(promise)
 			}
 		}
+		await send_fragment()
 		dots_text = "Finishing"
 		form_data.delete("fragment")
 		form_data.append("filename", replace ?? file.name)
