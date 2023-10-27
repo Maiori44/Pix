@@ -73,39 +73,6 @@ local fn convert_bytes(bytes) {
 local cache = {}
 
 local actions = {
-	upload = fn(req, res) {
-		$assert_method!("POST")
-		local size = 0
-		$assert_password!({
-			local file = decoded_data::get("file")
-			if !file || file.value == "" {
-				send_error(res, 400, "No file was sent.")
-				return
-			}
-			local r1 = math.random(0, 2 ^ 32 - 1)
-			local r2 = ((math.random(0, 2 ^ 32 - 1) & 0xFFFF4FFF) | 0x4000) % 2 ^ 32
-			local r3 = ((math.random(0, 2 ^ 32 - 1) & 0xBFFFFFFF) | 0x80000000) % 2 ^ 32
-			local r4 = math.random(0, 2 ^ 32 - 1)
-			local filename = file.headers[1]::match("filename=\"(.+)\"")
-			local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
-			local truename = ("%s-%s")::format(uuid, filename)
-			fs.writeFile("data/files/" .. truename, file.value, fn(err) {
-				if err {
-					send_error(res, 500, "Something unexpected happened.")
-					print(err)
-					return
-				}
-				res::setHeader("Location", "/uploaded.html?file=" .. truename)
-				finish_request(res, "text/plain", "Upload complete", 303)
-			})
-			files.add_file(
-				string.pack("I4I4I4I4", r1, r2, r3, r4),
-				filename,
-				file.headers[2]::match("Content%-Type: (.+)"),
-				decoded_data::get("ip")?.value
-			)
-		})
-	}
 	storage_used = fn(req, res) {
 		$assert_method!("GET")
 		fs.readdir("data/files", fn(err, files) {
@@ -193,27 +160,6 @@ local actions = {
 				}
 				finish_request(res, nil, nil, 204)
 				files.delete_file(filename)
-			})
-		})
-	}
-	replace = fn(req, res) {
-		$assert_method!("PUT")
-		$assert_password!({
-			local file = decoded_data::get("file")
-			local filename = file.headers[1]::match("filename=\"(.+)\"")
-			local owner = files.get_info(filename)[$OWNER]
-			if !owner || (owner != decoded_data::get("ip")?.value) {
-				send_error(res, 403, "File not uploaded by you.")
-				return
-			}
-			fs.writeFile("data/files/" .. filename, file.value, fn(err) {
-				if err {
-					send_error(res, 500, "Something unexpected happened.")
-					print(err)
-					return
-				}
-				finish_request(res, nil, nil, 204)
-				files.replace_file(filename, file.headers[2]::match("Content%-Type: (.+)"))
 			})
 		})
 	}
