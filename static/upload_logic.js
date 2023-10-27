@@ -40,7 +40,7 @@ function set_upload_file_logic(form, replace) {
 					body: form_data
 				}).then(async result => {
 					if (result.status != 204) {
-						document.clearInterval(dots_interval)
+						clearInterval(dots_interval)
 						document.write(await result.text())
 						return
 					}
