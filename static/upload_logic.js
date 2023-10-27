@@ -23,6 +23,7 @@ function set_upload_file_logic(form, replace) {
 		form_data.append("password", document.getElementById("password").value)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
 		let uploaded_size = 0
+		let errored = false
 		const reader = file.stream().getReader({ mode: "byob" })
 		async function send_fragment(promise) {
 			const { value: value1, done: done1 } = await reader.read(new Uint8Array(65536))
@@ -33,15 +34,20 @@ function set_upload_file_logic(form, replace) {
 			if (promise) {
 				await promise
 			}
-			if (!(done1 && done2)) {
+			if (!(done1 && done2) && !errored) {
 				form_data.set("fragment", buffer)
 				const promise = fetch(`/upload/${id}/fragment`, {
 					method: "POST",
 					body: form_data
 				}).then(async result => {
 					if (result.status != 204) {
-						clearInterval(dots_interval)
-						document.write(await result.text())
+						errored = true
+						const result_body = await result.text()
+						document.write(
+							replace
+								? result_body.replace("/index.html", "/files.html")
+								: result_body
+						)
 						return
 					}
 					uploaded_size += buffer.length
@@ -53,6 +59,8 @@ function set_upload_file_logic(form, replace) {
 			}
 		}
 		await send_fragment()
+		if (errored)
+			return;
 		dots_text = "Finishing"
 		form_data.delete("fragment")
 		form_data.append("filename", replace ?? file.name)
