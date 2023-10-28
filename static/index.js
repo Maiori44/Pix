@@ -8,7 +8,7 @@ fieldset.style.height = "173px"
 let prev_height = container.offsetHeight
 let momy = 0
 
-window.setInterval(() => {
+setInterval(() => {
 	if (prev_height != container.offsetHeight) {
 		momy = container.offsetHeight - prev_height
 	}

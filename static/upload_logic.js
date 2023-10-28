@@ -4,13 +4,13 @@ function set_upload_file_logic(form, replace) {
 		const files = document.getElementById("file")
 		const text = document.getElementById("title")
 		let dots_text = "Uploading"
-		let dots_interval, percentage
+		let percentage
 		form.addEventListener("animationend", () => {
 			form.innerHTML = "<h2 id=\"uploading-text\">Uploading</h2>\n<span id=\"percentage\">0%</span>"
 			const uploading_text = document.getElementById("uploading-text")
 			percentage = document.getElementById("percentage")
 			let dots = 0
-			dots_interval = window.setInterval(() => {
+			setInterval(() => {
 				dots = (dots + 1) % 4
 				uploading_text.innerText = dots_text + ".".repeat(dots)
 			}, 500)

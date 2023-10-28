@@ -59,7 +59,7 @@ password_check.addEventListener("submit", async e => {
 	img.addEventListener("load", () => {
 		target_opacity = next_target_opacity
 	})
-	window.setInterval(() => {
+	setInterval(() => {
 		const opacity = parseFloat(img.style.opacity)
 		if (opacity < target_opacity) {
 			img.style.opacity = opacity + 0.05
