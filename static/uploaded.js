@@ -3,22 +3,23 @@ const title = document.getElementById("file-uploaded-text")
 let total_files = params.get("total")
 if (!total_files) {
 	title.innerText = "What are you doing here?"
-} else { //<br><img id="preview-file">
+} else {
 	const images = document.getElementById("images")
 	for (let i = 0; i < total_files; i++)
-	images.innerHTML += `<img class="preview-file" src="/files/${params.get("file" + i)}">`
-	/*file = "/files/" + file
-	const img = document.getElementById("preview-file")
-	img.src = file
-	img.addEventListener("error", () => {
-		img.classList.add("invisible")
+		images.innerHTML += `<img class="preview-file" src="/files/${params.get("file" + i)}">`
+	document.querySelectorAll(".preview-file").forEach(img => {
+		img.addEventListener("error", () => {
+			img.remove()
+		})
 	})
 	if (params.get("replaced") == "true") {
 		title.innerText = "File replaced!"
 		document.getElementsByClassName("two-buttons")[1].parentElement.href = "/files.html"
-	}*/
+	} else if (total_files > 1) {
+		title.innerText = `${total_files} files uploaded!`
+	}
 }
-/*
+
 const copy_link_button = document.getElementsByClassName("two-buttons")[0]
 copy_link_button.addEventListener("click", () => {
 	if (!navigator.clipboard) {
@@ -32,9 +33,11 @@ copy_link_button.addEventListener("click", () => {
 			window.location.href = window.location.href.replace("http://", "https://")
 		})
 	} else {
-		navigator.clipboard.writeText(window.location.protocol + "//" + window.location.host + file)
+		let to_copy = []
+		for (let i = 0; i < total_files; i++)
+			to_copy.push(`${window.location.protocol}//${window.location.host}/files/${params.get("file" + i)}`)
+		navigator.clipboard.writeText(to_copy.join("\n"))
 		copy_link_button.innerText = "Link copied!"
 		copy_link_button.classList.add("disabled-button")
 	}
 }, { once: true })
-*/
