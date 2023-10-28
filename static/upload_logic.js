@@ -19,8 +19,6 @@ function set_upload_file_logic(form, replace) {
 		}, { once: true })
 		form.style.animation = "fade-out 140ms linear forwards"
 		text.style.animation = "fade-out 140ms linear forwards"
-		const base_id = BigInt(Date.now() * 100 + Math.floor(Math.random() * 1000))
-			* BigInt(Math.pow(10, files.files.length.toString().length))
 		const form_data = new FormData()
 		form_data.append("password", document.getElementById("password").value)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
@@ -77,8 +75,9 @@ function set_upload_file_logic(form, replace) {
 					body: form_data
 				}).then(async result => {
 					if (result.status != 204) {
+						if (errored)
+							return
 						errored = true
-						log(`${name}'s fragment failed to send!`)
 						const result_body = await result.text()
 						document.write(
 							replace
@@ -100,11 +99,10 @@ function set_upload_file_logic(form, replace) {
 			}
 		}
 		let promises = []
-		let i = BigInt(0)
 		for (const file of files.files) {
 			total_files += 1
 			total_size += file.size
-			const id = base_id + i++
+			const id = crypto.getRandomValues(new BigUint64Array(2)).join("")
 			promises.push(send_fragment(
 					file.stream().getReader({ mode: "byob" }),
 					file.name,
@@ -121,8 +119,9 @@ function set_upload_file_logic(form, replace) {
 				})
 				const result_body = await finish_result.text()
 				if (finish_result.status != 200) {
+					if (errored)
+						return
 					errored = true
-					log(`${file.name} failed to finish uploading!`)
 					document.write(replace ? result_body.replace("/index.html", "/files.html") : result_body)
 					return
 				}
@@ -143,7 +142,7 @@ function set_upload_file_logic(form, replace) {
 		}
 		let args = ""
 		for (const [i, name] of names.entries()) {
-			args += `file${i}=${encodeURIComponent((name))}&`
+			args += `file${i}=${encodeURIComponent(name)}&`
 		}
 		if (!errored)
 			window.location.href = `/uploaded.html?${args}replaced=${!!replace}&total=${names.length}`
