@@ -1,7 +1,7 @@
 function set_upload_file_logic(form, replace) {
 	form.addEventListener("submit", async e => {
 		e.preventDefault()
-		const file = document.getElementById("file").files[0]
+		const files = document.getElementById("file")
 		const text = document.getElementById("title")
 		let dots_text = "Uploading"
 		let dots_interval, percentage
@@ -18,14 +18,18 @@ function set_upload_file_logic(form, replace) {
 		}, { once: true })
 		form.style.animation = "fade-out 140ms linear forwards"
 		text.style.animation = "fade-out 140ms linear forwards"
-		const id = Date.now() * 100 + Math.floor(Math.random() * 1000)
+		const base_id = (Date.now() * 100 + Math.floor(Math.random() * 1000)) * Math.pow(10, files.files.length.toString().length)
 		const form_data = new FormData()
 		form_data.append("password", document.getElementById("password").value)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
+		let total_files = 0
+		let total_size = 0
+		let uploaded_files = 0
 		let uploaded_size = 0
 		let errored = false
-		const reader = file.stream().getReader({ mode: "byob" })
-		async function send_fragment(promise) {
+		async function send_fragment(reader, id, promise) {
+			if (errored)
+				return;
 			const { value: value1, done: done1 } = await reader.read(new Uint8Array(65536))
 			const { value: value2, done: done2 } = await reader.read(new Uint8Array(65536))
 			const buffer = new Uint8Array(value1.length + value2.length)
@@ -36,6 +40,8 @@ function set_upload_file_logic(form, replace) {
 			}
 			if (!(done1 && done2) && !errored) {
 				form_data.set("fragment", buffer)
+				form_data.delete("filename")
+				form_data.delete("content-type")
 				const promise = fetch(`/upload/${id}/fragment`, {
 					method: "POST",
 					body: form_data
@@ -52,29 +58,45 @@ function set_upload_file_logic(form, replace) {
 					}
 					uploaded_size += buffer.length
 					if (percentage) {
-						percentage.innerText = `${Math.floor((uploaded_size / file.size) * 100000) / 1000}%`
+						const amount = Math.floor((uploaded_size / total_size) * 100000) / 1000
+						percentage.innerText = total_files > 1
+							? `${amount}% (${uploaded_files}/${total_files})`
+							: `${amount}%`
 					}
 				})
-				return send_fragment(promise)
+				return send_fragment(reader, id, promise)
 			}
 		}
-		await send_fragment()
-		if (errored)
-			return;
-		dots_text = "Finishing"
-		form_data.delete("fragment")
-		form_data.append("filename", replace ?? file.name)
-		form_data.append("content-type", file.type)
-		const finish_result = await fetch(`/upload/${id}/${replace ? "replace" : "finish"}`, {
-			method: "POST",
-			body: form_data
-		})
-		clearInterval(dots_interval)
-		const result_body = await finish_result.text()
-		if (finish_result.status != 200) {
-			document.write(replace ? result_body.replace("/index.html", "/files.html") : result_body)
-			return
+		let promises = []
+		let i = 0
+		for (const file of files.files) {
+			total_files += 1
+			total_size += file.size
+			const id = base_id + i++
+			promises.push(send_fragment(file.stream().getReader({ mode: "byob" }), id).then(async () => {
+				if (errored)
+					return;
+				form_data.delete("fragment")
+				form_data.set("filename", replace ?? file.name)
+				form_data.set("content-type", file.type)
+				const finish_result = await fetch(`/upload/${id}/${replace ? "replace" : "finish"}`, {
+					method: "POST",
+					body: form_data
+				})
+				const result_body = await finish_result.text()
+				if (finish_result.status != 200) {
+					errored = true
+					document.write(replace ? result_body.replace("/index.html", "/files.html") : result_body)
+					return
+				}
+				uploaded_files += 1
+				return result_body
+			}))
 		}
-		window.location.href = `/uploaded.html?file=${result_body}&replaced=${!!replace}`
+		let names = []
+		for (const promise of promises) {
+			names.push(await promise)
+		}
+		window.location.href = `/uploaded.html?file=${names.concat(",")}&replaced=${!!replace}`
 	})
 }
