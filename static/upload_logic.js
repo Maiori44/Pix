@@ -19,7 +19,8 @@ function set_upload_file_logic(form, replace) {
 		}, { once: true })
 		form.style.animation = "fade-out 140ms linear forwards"
 		text.style.animation = "fade-out 140ms linear forwards"
-		const base_id = (Date.now() * 100 + Math.floor(Math.random() * 1000)) * Math.pow(10, files.files.length.toString().length)
+		const base_id = BigInt(Date.now() * 100 + Math.floor(Math.random() * 1000))
+			* BigInt(Math.pow(10, files.files.length.toString().length))
 		const form_data = new FormData()
 		form_data.append("password", document.getElementById("password").value)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
@@ -99,7 +100,7 @@ function set_upload_file_logic(form, replace) {
 			}
 		}
 		let promises = []
-		let i = 0
+		let i = BigInt(0)
 		for (const file of files.files) {
 			total_files += 1
 			total_size += file.size
@@ -144,6 +145,7 @@ function set_upload_file_logic(form, replace) {
 		for (const [i, name] of names.entries()) {
 			args += `file${i}=${encodeURIComponent((name))}&`
 		}
-		window.location.href = `/uploaded.html?${args}replaced=${!!replace}&total=${names.length}`
+		if (!errored)
+			window.location.href = `/uploaded.html?${args}replaced=${!!replace}&total=${names.length}`
 	})
 }
