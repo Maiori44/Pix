@@ -97,6 +97,10 @@ function set_upload_file_logic(form, replace) {
 		for (const promise of promises) {
 			names.push(await promise)
 		}
-		window.location.href = `/uploaded.html?file=${names.concat(",")}&replaced=${!!replace}`
+		let args = ""
+		for (const [i, name] of names.entries()) {
+			args += `file${i}=${encodeURIComponent((name))}&`
+		}
+		window.location.href = `/uploaded.html?${args}replaced=${!!replace}&total=${names.length}`
 	})
 }

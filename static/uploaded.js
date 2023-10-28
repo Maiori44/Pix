@@ -1,10 +1,13 @@
 const params = new URLSearchParams(window.location.search)
 const title = document.getElementById("file-uploaded-text")
-let file = params.get("file")
-if (!file) {
+let total_files = params.get("total")
+if (!total_files) {
 	title.innerText = "What are you doing here?"
-} else {
-	file = "/files/" + encodeURIComponent(file)
+} else { //<br><img id="preview-file">
+	const images = document.getElementById("images")
+	for (let i = 0; i < total_files; i++)
+	images.innerHTML += `<img class="preview-file" src="/files/${params.get("file" + i)}">`
+	/*file = "/files/" + file
 	const img = document.getElementById("preview-file")
 	img.src = file
 	img.addEventListener("error", () => {
@@ -13,9 +16,9 @@ if (!file) {
 	if (params.get("replaced") == "true") {
 		title.innerText = "File replaced!"
 		document.getElementsByClassName("two-buttons")[1].parentElement.href = "/files.html"
-	}
+	}*/
 }
-
+/*
 const copy_link_button = document.getElementsByClassName("two-buttons")[0]
 copy_link_button.addEventListener("click", () => {
 	if (!navigator.clipboard) {
@@ -34,3 +37,4 @@ copy_link_button.addEventListener("click", () => {
 		copy_link_button.classList.add("disabled-button")
 	}
 }, { once: true })
+*/

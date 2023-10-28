@@ -7,7 +7,7 @@ if (!file) {
 	form.innerHTML = "<div class=\"bigger\">Replace nothingness?</div>" + 
 	"That's just <a href=\"/index.html\">uploading</a> something new..."
 } else {
-	const img = document.getElementById("preview-file")
+	const img = document.getElementsByClassName("preview-file")[0]
 	img.src = "/files/" + encodeURIComponent(file)
 	img.addEventListener("error", () => {
 		img.classList.add("invisible")

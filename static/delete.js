@@ -4,7 +4,7 @@ const file = new URLSearchParams(window.location.search).get("file")
 if (!file) {
 	form.innerHTML = "You can't delete nothingness."
 } else {
-	const img = document.getElementById("preview-file")
+	const img = document.getElementsByClassName("preview-file")[0]
 	img.src = "/files/" + encodeURIComponent(file)
 	img.addEventListener("error", () => {
 		img.classList.add("invisible")

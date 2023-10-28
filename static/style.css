@@ -114,14 +114,14 @@
 		transform-origin: top center;
     }
 
-	#preview-file {
+	.preview-file {
 		min-width: 5%;
 		max-width: 10%;
 	}
 }
 
 @media screen and (max-width: 640px) {
-	#preview-file {
+	.preview-file {
 		min-width: 20%;
 		max-width: 40%;
 	}
@@ -175,6 +175,11 @@ fieldset {
 	overflow-wrap: break-word;
 }
 
+.preview-file {
+	height: auto;
+	padding-inline: 5px;
+}
+
 #bottom {
 	display: flex;
 	justify-content: space-between;
@@ -190,10 +195,6 @@ fieldset {
 	height: 120px;
 	scrollbar-color: lightgray black;
 	scrollbar-width: thin;
-}
-
-#preview-file {
-	height: auto;
 }
 
 ::-webkit-scrollbar-track  {
