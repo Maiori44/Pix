@@ -35,7 +35,7 @@ copy_link_button.addEventListener("click", () => {
 	} else {
 		let to_copy = []
 		for (let i = 0; i < total_files; i++)
-			to_copy.push(`${window.location.protocol}//${window.location.host}/files/${params.get("file" + i)}`)
+			to_copy.push(`${window.location.protocol}//${window.location.host}/files/${encodeURIComponent(params.get("file" + i))}`)
 		navigator.clipboard.writeText(to_copy.join("\n"))
 		copy_link_button.innerText = "Link copied!"
 		copy_link_button.classList.add("disabled-button")
