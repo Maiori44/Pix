@@ -19,8 +19,10 @@ function set_upload_file_logic(form, replace) {
 		}, { once: true })
 		form.style.animation = "fade-out 140ms linear forwards"
 		text.style.animation = "fade-out 140ms linear forwards"
+		const headers = {
+			Password: document.getElementById("password").value
+		}
 		const form_data = new FormData()
-		form_data.append("password", document.getElementById("password").value)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
 		let total_files = 0
 		let total_size = 0
@@ -72,7 +74,8 @@ function set_upload_file_logic(form, replace) {
 				log(`Sending ${name}'s next fragment...`)
 				const promise = fetch(`/upload/${id}/fragment`, {
 					method: "POST",
-					body: form_data
+					body: form_data,
+					headers
 				}).then(async result => {
 					if (result.status != 204) {
 						if (errored)
@@ -115,7 +118,8 @@ function set_upload_file_logic(form, replace) {
 				form_data.set("content-type", file.type)
 				const finish_result = await fetch(`/upload/${id}/${replace ? "replace" : "finish"}`, {
 					method: "POST",
-					body: form_data
+					body: form_data,
+					headers
 				})
 				const result_body = await finish_result.text()
 				if (finish_result.status != 200) {

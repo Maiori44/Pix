@@ -16,12 +16,14 @@ if (!file) {
 	form.addEventListener("submit", async e => {
 		e.preventDefault()
 		const form_data = new FormData()
-		form_data.append("password", document.getElementById("password").value)
 		form_data.append("filename", file)
 		form_data.append("ip", await (await fetch("https://api.ipify.org")).text())
 		const result = await fetch("/delete", {
 			method: "DELETE",
 			body: form_data,
+			headers: {
+				Password: document.getElementById("password").value
+			}
 		})
 		const text = await result.text()
 		if (result.status != 204) {

@@ -8,25 +8,28 @@
 	}
 }
 
-@macro assert_password(code) {
+@macro assert_password() {
+	fs.readFile(".password", fn(err, password) {
+		if err {
+			send_error(res, 500, "Something unexpected happened.")
+			print(err)
+			return
+		}
+		if req.headers["Password"] != password::match("[^\n]+") {
+			send_error(res, 401, "Wrong password.")
+			return
+		}
+	})
+}
+
+@macro read_body(code) {
 	local body_data = {}
 	req::on("data", fn(data) {
 		table.insert(body_data, data)
 	})
 	req::on("end", fn {
 		local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
-		fs.readFile(".password", fn(err, password) {
-			if err {
-				send_error(res, 500, "Something unexpected happened.")
-				print(err)
-				return
-			}
-			if decoded_data::get("password")?.value != password::match("[^\n]+") {
-				send_error(res, 401, "Wrong password.")
-				return
-			}
-			$code
-		})
+		$code
 	})
 }
 
@@ -105,47 +108,47 @@ local actions = {
 		})
 	}
 	file_list = fn(req, res) {
-		$assert_method!("POST") //has to be POST since it has to have a body
-		$assert_password!({
-			fs.readdir("data/files", fn(err, files) {
-				if err {
-					send_error(res, 500, "Something unexpected happened.")
-					print(err)
-					return
-				}
-				local list = {}
-				local tot_files = 0
-				local next_k = 2
-				for _, file in files {
-					if local filename = file::match("%x+%-([^<>]+)") {
-						tot_files += 1
-						if (tot_files % 3) == 1 {
-							list[next_k] = "<tr class=\"file\">"
-							next_k += 1
-						}
-						list[next_k] = ("<td class=\"file\"><a href=\"%s\" class=\"link\">%s</a></td>")
-							::format(querystring.urlencode(file), filename)
-						if (tot_files % 3) == 0 {
-							list[next_k + 1] = "</tr>"
-							next_k += 2
-						} else {
-							next_k += 1
-						}
+		$assert_method!("GET")
+		$assert_password!()
+		fs.readdir("data/files", fn(err, files) {
+			if err {
+				send_error(res, 500, "Something unexpected happened.")
+				print(err)
+				return
+			}
+			local list = {}
+			local tot_files = 0
+			local next_k = 2
+			for _, file in files {
+				if local filename = file::match("%x+%-([^<>]+)") {
+					tot_files += 1
+					if (tot_files % 3) == 1 {
+						list[next_k] = "<tr class=\"file\">"
+						next_k += 1
+					}
+					list[next_k] = ("<td class=\"file\"><a href=\"%s\" class=\"link\">%s</a></td>")
+						::format(querystring.urlencode(file), filename)
+					if (tot_files % 3) == 0 {
+						list[next_k + 1] = "</tr>"
+						next_k += 2
+					} else {
+						next_k += 1
 					}
 				}
-				if list[next_k - 1] != "</tr>" {
-					list[next_k] = "</tr>"
-					next_k += 1
-				}
-				list[next_k] = "</table>"
-				list[1] = ("<br>%d files total<table>")::format(tot_files)
-				finish_request(res, "text/html", table.concat(list))
-			})
+			}
+			if list[next_k - 1] != "</tr>" {
+				list[next_k] = "</tr>"
+				next_k += 1
+			}
+			list[next_k] = "</table>"
+			list[1] = ("<br>%d files total<table>")::format(tot_files)
+			finish_request(res, "text/html", table.concat(list))
 		})
 	}
 	delete = fn(req, res) {
 		$assert_method!("DELETE")
-		$assert_password!({
+		$assert_password!()
+		$read_body!({
 			local filename = decoded_data::get("filename").value
 			local owner = files.get_info(filename)[$OWNER]
 			if !owner || (owner != decoded_data::get("ip")?.value) {
@@ -247,7 +250,8 @@ local patterns = {
 	}
 	["^/+upload/+(%d+)/(%l+)"] = fn(req, res, id, action) {
 		$assert_method!("POST")
-		$assert_password!({
+		$assert_password!()
+		$read_body!({
 			if timeouts[id] == false {
 				send_error(res, 408, "Upload timeout.")
 				return

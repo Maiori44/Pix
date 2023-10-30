@@ -2,11 +2,11 @@ const password_check = document.getElementById("password-check")
 
 password_check.addEventListener("submit", async e => {
 	e.preventDefault()
-	const form_data = new FormData()
-	form_data.append("password", document.getElementById("password").value)
 	const result = await fetch("/file_list", {
-		method: "POST",
-		body: form_data,
+		method: "GET",
+		headers: {
+			Password: document.getElementById("password").value
+		}
 	})
 	const text = await result.text()
 	if (result.status != 200) {
