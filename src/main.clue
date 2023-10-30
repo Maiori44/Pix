@@ -1,3 +1,5 @@
+@version 4.0.0
+
 @import "deps.multipart"
 @import "files"
 
@@ -8,7 +10,7 @@
 	}
 }
 
-@macro assert_password() {
+@macro assert_password(code) {
 	fs.readFile(".password", fn(err, password) {
 		if err {
 			send_error(res, 500, "Something unexpected happened.")
@@ -19,7 +21,16 @@
 			send_error(res, 401, "Wrong password.")
 			return
 		}
+		$code
 	})
+}
+
+@macro assert_owner(filename) {
+	local owner = files.get_info($filename)[$OWNER]
+	if !owner || (owner != req.headers["IP"]) {
+		send_error(res, 403, "File not uploaded by you.")
+		return
+	}
 }
 
 @macro read_body(code) {
@@ -28,7 +39,7 @@
 		table.insert(body_data, data)
 	})
 	req::on("end", fn {
-		local decoded_data = multipart(table.concat(body_data), req.headers["Content-Type"])
+		local body = table.concat(body_data)
 		$code
 	})
 }
@@ -109,8 +120,7 @@ local actions = {
 	}
 	file_list = fn(req, res) {
 		$assert_method!("GET")
-		$assert_password!()
-		fs.readdir("data/files", fn(err, files) {
+		$assert_password!(fs.readdir("data/files", fn(err, files) {
 			if err {
 				send_error(res, 500, "Something unexpected happened.")
 				print(err)
@@ -143,28 +153,22 @@ local actions = {
 			list[next_k] = "</table>"
 			list[1] = ("<br>%d files total<table>")::format(tot_files)
 			finish_request(res, "text/html", table.concat(list))
-		})
+		}))
 	}
 	delete = fn(req, res) {
 		$assert_method!("DELETE")
-		$assert_password!()
-		$read_body!({
-			local filename = decoded_data::get("filename").value
-			local owner = files.get_info(filename)[$OWNER]
-			if !owner || (owner != decoded_data::get("ip")?.value) {
-				send_error(res, 403, "File not uploaded by you.")
-				return
-			}
-			fs.unlink("data/files/" .. filename, fn(err) {
+		$assert_password!($read_body!({
+			$assert_owner!(body)
+			fs.unlink("data/files/" .. body, fn(err) {
 				if err {
 					send_error(res, 404, "File not found.")
 					print(err)
 					return
 				}
 				finish_request(res, nil, nil, 204)
-				files.delete_file(filename)
+				files.delete_file(body)
 			})
-		})
+		}))
 	}
 }
 
@@ -248,10 +252,9 @@ local patterns = {
 			send_error(res, 404, "Unknown action.")
 		}
 	}
-	["^/+upload/+(%d+)/(%l+)"] = fn(req, res, id, action) {
+	["^/+upload/+(%d+)/(%l+)$"] = fn(req, res, id, action) {
 		$assert_method!("POST")
-		$assert_password!()
-		$read_body!({
+		$assert_password!($read_body!({
 			if timeouts[id] == false {
 				send_error(res, 408, "Upload timeout.")
 				return
@@ -265,11 +268,7 @@ local patterns = {
 							print(err)
 							return
 						}
-						local data = {}
-						for byte with decoded_data::get("fragment").value::gmatch("(%d+),?") {
-							table.insert(data, byte::char())
-						}
-						fs.write(fd, 0, table.concat(data), fn(err, size) {
+						fs.write(fd, 0, body, fn(err, size) {
 							if err {
 								send_error(res, 500, "Something unexpected happened.")
 								print(err)
@@ -311,7 +310,7 @@ local patterns = {
 						send_error(res, 400, "No file data was ever sent.")
 						return
 					}
-					local filename = decoded_data::get("filename")?.value
+					local content_type, filename = body::match("^(.+)\n(.+)$")
 					if !filename {
 						send_error(res, 400, "No file name was sent.")
 						return
@@ -333,8 +332,8 @@ local patterns = {
 						files.add_file(
 							string.pack("I4I4I4I4", r1, r2, r3, r4),
 							filename,
-							decoded_data::get("content-type")?.value,
-							decoded_data::get("ip")?.value
+							content_type,
+							req.headers["IP"]
 						)
 					})
 				}
@@ -344,16 +343,12 @@ local patterns = {
 						send_error(res, 400, "No file data was ever sent.")
 						return
 					}
-					local filename = decoded_data::get("filename")?.value
+					local content_type, filename = body::match("^(.+)\n(.+)$")
 					if !filename {
 						send_error(res, 400, "No file name was sent.")
 						return
 					}
-					local owner = files.get_info(filename)[$OWNER]
-					if !owner || (owner != decoded_data::get("ip")?.value) {
-						send_error(res, 403, "File not uploaded by you.")
-						return
-					}
+					$assert_owner!(filename)
 					fragments_sizes[id] = nil
 					childprocess.exec(
 						("rm 'data/files/%s' && mv /tmp/Pix/%s 'data/files/%s'")::format(
@@ -366,7 +361,7 @@ local patterns = {
 								return
 							}
 							finish_request(res, "text/plain", filename, 200)
-							files.replace_file(filename, decoded_data::get("content-type")?.value)
+							files.replace_file(filename, content_type)
 						}
 					)
 				}
@@ -374,7 +369,7 @@ local patterns = {
 					send_error(res, 404, "Unknown action.")
 				}
 			}
-		})
+		}))
 	}
 }
 
