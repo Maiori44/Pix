@@ -6,7 +6,8 @@ function set_upload_file_logic(form, replace) {
 		let percentage, list
 		form.addEventListener("animationend", () => {
 			form.innerHTML = "<h2 id=\"uploading-text\">Uploading</h2>\n"
-				+ "<span id=\"percentage\">0%</span><span id=\"event-list\"></span>"
+				+ "<span id=\"percentage\">0%</span>"
+				+ "<span id=\"event-list\"><span>Initializing...</span></span>"
 			const uploading_text = document.getElementById("uploading-text")
 			percentage = document.getElementById("percentage")
 			list = document.getElementById("event-list")
@@ -26,14 +27,14 @@ function set_upload_file_logic(form, replace) {
 		let uploaded_files = 0
 		let uploaded_size = 0
 		let errored = false
-		let logs = 0
+		let logs = 1
 		setInterval(() => {
 			while (logs > 30) {
 				list.children[list.children.length - 1].remove();
 				logs--
 			}
 		}, 1000)
-		let waiting_logs = ["Initiating..."]
+		let waiting_logs = []
 		function log(message) {
 			if (list) {
 				if (waiting_logs) {
@@ -50,7 +51,7 @@ function set_upload_file_logic(form, replace) {
 				waiting_logs.push(message)
 			}
 		}
-		async function send_fragment(reader, name, i, id, promise) {
+		async function send_fragment(reader, name, i, id) {
 			if (errored)
 				return;
 			const { value: value1, done: done1 } = await reader.read(new Uint8Array(65536))
@@ -59,14 +60,9 @@ function set_upload_file_logic(form, replace) {
 			buffer.set(value1, 0)
 			buffer.set(value2, value1.length)
 			const not_done = !(done1 && done2)
-			if (promise) {
-				if (not_done)
-					log(`${name}'s next fragment is ready, waiting response...`)
-				await promise
-			}
 			if (not_done && !errored) {
-				log(`Sending ${name}'s next fragment...`)
-				const promise = fetch(`/upload/${id}/fragment`, {
+				log(`Sending ${name}'s fragment n°${i}...`)
+				fetch(`/upload/${id}/fragment`, {
 					method: "POST",
 					body: buffer,
 					headers: {
@@ -86,7 +82,7 @@ function set_upload_file_logic(form, replace) {
 						)
 						return
 					}
-					log(`${name}'s fragment was sent!`)
+					log(`${name}'s fragment n°${i - 1} was received!`)
 					uploaded_size += buffer.length
 					if (percentage) {
 						const amount = Math.floor((uploaded_size / total_size) * 100000) / 1000
@@ -95,20 +91,20 @@ function set_upload_file_logic(form, replace) {
 							: `${amount}%`
 					}
 				})
-				return send_fragment(reader, name, i, id, promise)
+				return send_fragment(reader, name, i, id)
 			}
 		}
-		let promises = []
+		let names = []
 		for (const file of files.files) {
 			total_files += 1
 			total_size += file.size
 			const id = crypto.getRandomValues(new BigUint64Array(2)).join("")
-			promises.push(send_fragment(
-					file.stream().getReader({ mode: "byob" }),
-					file.name,
-					1,
-					id
-				).then(async () => {
+			send_fragment(
+				file.stream().getReader({ mode: "byob" }),
+				file.name,
+				1,
+				id
+			).then(async () => {
 				if (errored)
 					return;
 				const finish_result = await fetch(`/upload/${id}/${replace ? "replace" : "finish"}`, {
@@ -119,6 +115,7 @@ function set_upload_file_logic(form, replace) {
 						IP: ip
 					}
 				})
+				log(`All of ${file.name}'s fragments were sent! Finishing upload...`)
 				const result_body = await finish_result.text()
 				if (finish_result.status != 200) {
 					if (errored)
@@ -135,18 +132,16 @@ function set_upload_file_logic(form, replace) {
 						? `${amount}% (${uploaded_files}/${total_files})`
 						: `${amount}%`
 				}
-				return result_body
-			}))
+				names.push(result_body)
+				if (uploaded_files == total_files) {
+					let args = ""
+					for (const [i, name] of names.entries()) {
+						args += `file${i}=${encodeURIComponent(name)}&`
+					}
+					if (!errored)
+						window.location.href = `/uploaded.html?${args}replaced=${!!replace}&total=${names.length}`
+				}
+			})
 		}
-		let names = []
-		for (const promise of promises) {
-			names.push(await promise)
-		}
-		let args = ""
-		for (const [i, name] of names.entries()) {
-			args += `file${i}=${encodeURIComponent(name)}&`
-		}
-		if (!errored)
-			window.location.href = `/uploaded.html?${args}replaced=${!!replace}&total=${names.length}`
 	})
 }
