@@ -26,7 +26,6 @@ function set_upload_file_logic(form, replace) {
 		let total_size = 0
 		let uploaded_files = 0
 		let uploaded_size = 0
-		let loaded_size = 0
 		let errored = false
 		let logs = 1
 		setInterval(() => {
@@ -56,13 +55,10 @@ function set_upload_file_logic(form, replace) {
 
 		function update_percentage() {
 			if (percentage) {
-				const amount = Math.floor((loaded_size / total_size) * 100000) / 1000
-				let main_text = total_size >= 65536
-					? `${amount}% (Received: ${Math.floor((uploaded_size / total_size) * 100000) / 1000}%)`
-					: `${amount}%`
+				const amount = Math.floor((uploaded_size / total_size) * 100000) / 1000
 				percentage.innerText = total_files > 1
-					? `${main_text} (${uploaded_files}/${total_files})`
-					: main_text
+					? `${amount}% (${uploaded_files}/${total_files})`
+					: `${amount}%`
 			}
 		}
 
@@ -78,8 +74,8 @@ function set_upload_file_logic(form, replace) {
 			let i = 1
 			while (!errored) {
 				const { value, done } = await reader.read(new Uint8Array(65536))
-				if (requests >= 1000)
-					while (requests > 800)
+				if (requests >= 800)
+					while (requests > 400)
 						await fragments.pop()
 				const current_i = i
 				log(`Sending ${file.name}'s fragment n°${i}...`)
