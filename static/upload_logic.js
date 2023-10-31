@@ -57,7 +57,7 @@ function set_upload_file_logic(form, replace) {
 		function update_percentage() {
 			if (percentage) {
 				const amount = Math.floor((loaded_size / total_size) * 100000) / 1000
-				let main_text = total_size >= 95027200
+				let main_text = total_size >= 9830400
 					? `${amount}% (Received: ${Math.floor((uploaded_size / total_size) * 100000) / 1000}%)`
 					: `${amount}%`
 				percentage.innerText = total_files > 1
@@ -79,7 +79,7 @@ function set_upload_file_logic(form, replace) {
 				let final_done = false
 				let values = []
 				let length = 0
-				for (let _ = 0; _ < 1450; _++) {
+				for (let _ = 0; _ < 150; _++) {
 					const { value, done } = await reader.read(new Uint8Array(65536))
 					values.push(value)
 					length += value.length
