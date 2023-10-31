@@ -79,11 +79,7 @@ function set_upload_file_logic(form, replace) {
 				let final_done = false
 				let values = []
 				let length = 0
-<<<<<<< HEAD
 				for (let _ = 0; _ < 45; _++) {
-=======
-				for (let _ = 0; _ < 150; _++) {
->>>>>>> b7945ca3fd64d8884d5511821b6dd26faf04cdae
 					const { value, done } = await reader.read(new Uint8Array(65536))
 					values.push(value)
 					length += value.length
