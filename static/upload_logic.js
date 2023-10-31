@@ -74,8 +74,8 @@ function set_upload_file_logic(form, replace) {
 			let i = 1
 			while (!errored) {
 				const { value, done } = await reader.read(new Uint8Array(65536))
-				if (requests >= 800)
-					while (requests > 200)
+				if (requests >= 1000)
+					while (requests > 0)
 						await fragments.pop()
 				const current_i = i
 				log(`Sending ${file.name}'s fragment n°${i}...`)
