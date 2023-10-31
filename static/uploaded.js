@@ -6,7 +6,7 @@ if (!total_files) {
 } else {
 	const images = document.getElementById("images")
 	for (let i = 0; i < total_files; i++)
-		images.innerHTML += `<img class="preview-file" src="/files/${params.get("file" + i)}">`
+		images.innerHTML += `<img class="preview-file" src="/files/${encodeURIComponent(params.get("file" + i))}">`
 	document.querySelectorAll(".preview-file").forEach(img => {
 		img.addEventListener("error", () => {
 			img.remove()
