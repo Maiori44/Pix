@@ -72,37 +72,48 @@ function set_upload_file_logic(form, replace) {
 			const fragments = []
 			let i = 1
 			while (!errored) {
-				const { value: value1, done: done1 } = await reader.read(new Uint8Array(65536))
-				const { value: value2, done: done2 } = await reader.read(new Uint8Array(65536))
-				const buffer = new Uint8Array(value1.length + value2.length)
-				buffer.set(value1, 0)
-				buffer.set(value2, value1.length)
-				if (!(done1 && done2)) {
-					log(`Sending ${file.name}'s fragment n°${i}...`)
-					fragments.push(fetch(`/upload/${id}/fragment`, {
-						method: "POST",
-						body: buffer,
-						headers: {
-							Password: password,
-							FragmentNum: i++,
-						}
-					}).then(async result => {
-						if (result.status != 204) {
-							if (errored) return
-							errored = true
-							const result_body = await result.text()
-							document.write(
-								replace
-									? result_body.replace("/index.html", "/files.html")
-									: result_body
-							)
-							return
-						}
-						log(`${file.name}'s fragment n°${i - 1} was received!`)
-						uploaded_size += buffer.length
-						update_percentage()
-					}))
-				} else break
+				let final_done = false
+				let values = []
+				let length = 0
+				for (let _ = 0; _ < 1525; _++) {
+					const { value, done } = await reader.read(new Uint8Array(65536))
+					values.push(value)
+					length += value.length
+					final_done = done
+					if (final_done) break
+				}
+				const buffer = new Uint8Array(length)
+				let offset = 0
+				for (const [i, value] of values.entries()) {
+					buffer.set(value, offset)
+					offset += value.length
+				}
+				const current_i = i
+				log(`Sending ${file.name}'s fragment n°${i}...`)
+				fragments.push(fetch(`/upload/${id}/fragment`, {
+					method: "POST",
+					body: buffer,
+					headers: {
+						Password: password,
+						FragmentNum: i++,
+					}
+				}).then(async result => {
+					if (result.status != 204) {
+						if (errored) return
+						errored = true
+						const result_body = await result.text()
+						document.write(
+							replace
+								? result_body.replace("/index.html", "/files.html")
+								: result_body
+						)
+						return
+					}
+					log(`${file.name}'s fragment n°${current_i} was received!`)
+					uploaded_size += buffer.length
+					update_percentage()
+				}))
+				if (final_done) break
 			}
 			log(`All of ${file.name}'s fragments were sent! Waiting for receival...`)
 			for (const promise of fragments) {
