@@ -19,10 +19,8 @@ function set_upload_file_logic(form, replace) {
 		}, { once: true })
 		form.style.animation = "fade-out 140ms linear forwards"
 		text.style.animation = "fade-out 140ms linear forwards"
-		const headers = {
-			Password: document.getElementById("password").value,
-			IP: await (await fetch("https://api.ipify.org")).text()
-		}
+		const password = document.getElementById("password").value
+		const ip = await (await fetch("https://api.ipify.org")).text()
 		let total_files = 0
 		let total_size = 0
 		let uploaded_files = 0
@@ -52,7 +50,7 @@ function set_upload_file_logic(form, replace) {
 				waiting_logs.push(message)
 			}
 		}
-		async function send_fragment(reader, name, id, promise) {
+		async function send_fragment(reader, name, i, id, promise) {
 			if (errored)
 				return;
 			const { value: value1, done: done1 } = await reader.read(new Uint8Array(65536))
@@ -71,7 +69,10 @@ function set_upload_file_logic(form, replace) {
 				const promise = fetch(`/upload/${id}/fragment`, {
 					method: "POST",
 					body: buffer,
-					headers
+					headers: {
+						Password: password,
+						FragmentNum: i++,
+					}
 				}).then(async result => {
 					if (result.status != 204) {
 						if (errored)
@@ -94,7 +95,7 @@ function set_upload_file_logic(form, replace) {
 							: `${amount}%`
 					}
 				})
-				return send_fragment(reader, name, id, promise)
+				return send_fragment(reader, name, i, id, promise)
 			}
 		}
 		let promises = []
@@ -105,6 +106,7 @@ function set_upload_file_logic(form, replace) {
 			promises.push(send_fragment(
 					file.stream().getReader({ mode: "byob" }),
 					file.name,
+					1,
 					id
 				).then(async () => {
 				if (errored)
@@ -112,7 +114,10 @@ function set_upload_file_logic(form, replace) {
 				const finish_result = await fetch(`/upload/${id}/${replace ? "replace" : "finish"}`, {
 					method: "POST",
 					body: `${file.type}\n${replace ?? file.name}`,
-					headers
+					headers: {
+						Password: password,
+						IP: ip
+					}
 				})
 				const result_body = await finish_result.text()
 				if (finish_result.status != 200) {

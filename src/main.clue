@@ -1,6 +1,6 @@
 @version 4.0.0
 
-@import "deps.multipart"
+@import "fragments"
 @import "files"
 
 @macro assert_method(wanted) {
@@ -44,19 +44,26 @@
 	})
 }
 
+@macro prepare_finish() {
+	if !fragments.assert_exist(id) {
+		send_error(res, 400, "No file data was ever sent.")
+		return
+	}
+	local ok, last_i = fragments.get_last_fragment_index(id)
+	if !ok {
+		send_error(res, 424, ("Missing fragment %d.")::format(last_i))
+		return
+	}
+	local content_type, filename = body::match("^(.+)\n(.+)$")
+	if !filename {
+		send_error(res, 400, "No file name was sent.")
+		return
+	}
+}
+
 static pprint = require("pretty-print").prettyPrint
 
-local childprocess = require('childprocess')
-local querystring = require("querystring")
-local timer = require("timer")
-local http = require("http")
-local uv = require("uv")
-local fs = require("fs")
-
-local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
-local error_html = assert(fs.readFileSync("src/error.html"))
-
-local fn finish_request(res, type, result, status_code) {
+static fn finish_request(res, type, result, status_code) {
 	if res.headersSent {
 		return
 	}
@@ -69,6 +76,14 @@ local fn finish_request(res, type, result, status_code) {
 	}
 	res::finish(result)
 }
+
+local childprocess = require('childprocess')
+local querystring = require("querystring")
+local http = require("http")
+local fs = require("fs")
+
+local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
+local error_html = assert(fs.readFileSync("src/error.html"))
 
 local fn send_error(res, code, message) {
 	finish_request(res, "text/html", error_html::format(code, message), code)
@@ -172,14 +187,6 @@ local actions = {
 	}
 }
 
-local timeouts = {}
-local fragments_sizes = {}
-
-local fn clear_timeout(id) {
-	uv.timer_set_repeat(timeouts[id], 1)
-	uv.timer_again(timeouts[id])
-}
-
 local patterns = {
 	["^/+$"] = fn(_, res) {
 		res::setHeader("Location", "index.html")
@@ -255,115 +262,51 @@ local patterns = {
 	["^/+upload/+(%d+)/(%l+)$"] = fn(req, res, id, action) {
 		$assert_method!("POST")
 		$assert_password!($read_body!({
-			if timeouts[id] == false {
+			if fragments.assert_timeout(id) {
 				send_error(res, 408, "Upload timeout.")
 				return
 			}
-			local path = "/tmp/Pix/" .. id
 			match action {
 				"fragment" => {
-					fs.open(path, "a", fn(err, fd) {
-						if err {
-							send_error(res, 500, "Something unexpected happened.")
-							print(err)
-							return
-						}
-						fs.write(fd, 0, body, fn(err, size) {
-							if err {
-								send_error(res, 500, "Something unexpected happened.")
-								print(err)
-							} else {
-								finish_request(res, nil, nil, 204)
-								if local timeout = timeouts[id] {
-									uv.timer_again(timeout)
-								} else {
-									timeouts[id] = timer.setInterval(120000, fn {
-										timer.clearTimer(timeouts[id])
-										if fragments_sizes[id] {
-											fs.unlink(path)
-										} else {
-											fragments_sizes[id] = nil
-										}
-										timeouts[id] = false
-										timer.setTimeout(300000, fn {
-											timeouts[id] = nil
-										})
-									})
-								}
-								if fragments_sizes[id] {
-									fragments_sizes[id] += size
-								} else {
-									fragments_sizes[id] = size
-								}
-								if fragments_sizes[id] >= 4000000000 {
-									send_error(res, 413, "File too large.")
-									clear_timeout(id)
-								}
-							}
-							fs.close(fd)
-						})
-					})
+					if local i = tonumber(req.headers["FragmentNum"]) {
+						fragments.add_fragment(id, i, body)
+						finish_request(res, nil, nil, 204)
+					} else {
+						send_error(res, 400, "Missing fragment number.")
+					}
 				}
 				"finish" => {
-					clear_timeout(id)
-					if !timeouts[id] {
-						send_error(res, 400, "No file data was ever sent.")
-						return
-					}
-					local content_type, filename = body::match("^(.+)\n(.+)$")
-					if !filename {
-						send_error(res, 400, "No file name was sent.")
-						return
-					}
+					$prepare_finish!()
 					local r1 = math.random(0, 2 ^ 32 - 1)
 					local r2 = ((math.random(0, 2 ^ 32 - 1) & 0xFFFF4FFF) | 0x4000) % 2 ^ 32
 					local r3 = ((math.random(0, 2 ^ 32 - 1) & 0xBFFFFFFF) | 0x80000000) % 2 ^ 32
 					local r4 = math.random(0, 2 ^ 32 - 1)
 					local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
-					local truename = ("%s-%s")::format(uuid, filename)
-					fragments_sizes[id] = nil
-					childprocess.exec(("mv /tmp/Pix/%s 'data/files/%s'")::format(id, truename), fn(err, ...) {
-						if err {
-							send_error(res, 500, "Something unexpected happened.")
-							pprint(err, ...)
-							return
+					fragments.save_file(res, id, last_i, ("%s-%s")::format(uuid, filename), fn(err) {
+						if !err {
+							files.add_file(
+								string.pack("I4I4I4I4", r1, r2, r3, r4),
+								filename,
+								content_type,
+								req.headers["IP"]
+							)
 						}
-						finish_request(res, "text/plain", truename, 200)
-						files.add_file(
-							string.pack("I4I4I4I4", r1, r2, r3, r4),
-							filename,
-							content_type,
-							req.headers["IP"]
-						)
 					})
 				}
 				"replace" => {
-					clear_timeout(id)
-					if !timeouts[id] {
-						send_error(res, 400, "No file data was ever sent.")
-						return
-					}
-					local content_type, filename = body::match("^(.+)\n(.+)$")
-					if !filename {
-						send_error(res, 400, "No file name was sent.")
-						return
-					}
+					$prepare_finish!()
 					$assert_owner!(filename)
-					fragments_sizes[id] = nil
-					childprocess.exec(
-						("rm 'data/files/%s' && mv /tmp/Pix/%s 'data/files/%s'")::format(
-							filename, id, filename
-						),
-						fn(err, ...) {
+					local path = "data/files/" .. filename
+					fs.readFile(path, fn(_, old_file) {
+						fs.unlink(path)
+						fragments.save_file(res, id, last_i, filename, fn(err) {
 							if err {
-								send_error(res, 500, "Something unexpected happened.")
-								pprint(err, ...)
-								return
+								fs.writeFile(path, old_file)
+							} else {
+								files.replace_file(filename, content_type)
 							}
-							finish_request(res, "text/plain", filename, 200)
-							files.replace_file(filename, content_type)
-						}
-					)
+						})						
+					})
 				}
 				default => {
 					send_error(res, 404, "Unknown action.")
@@ -385,11 +328,3 @@ http.createServer(fn(req, res) {
 	}
 	send_error(res, 404, "Page not found.")
 })::listen(port, ip)
-
-if fs.existsSync("/tmp/Pix") {
-	for name with assert(fs.scandirSync("/tmp/Pix")) {
-		assert(fs.unlinkSync("/tmp/Pix/" .. name))
-	}
-	assert(fs.rmdirSync("/tmp/Pix"))
-}
-assert(fs.mkdirSync("/tmp/Pix"))
