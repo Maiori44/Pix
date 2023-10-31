@@ -54,7 +54,7 @@
 		send_error(res, 424, ("Missing fragment %d.")::format(last_i))
 		return
 	}
-	local content_type, filename = body::match("^(.+)\n(.+)$")
+	local content_type, filename = body::match("^(.*)\n(.+)$")
 	if !filename {
 		send_error(res, 400, "No file name was sent.")
 		return
