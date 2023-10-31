@@ -57,7 +57,7 @@ function set_upload_file_logic(form, replace) {
 		function update_percentage() {
 			if (percentage) {
 				const amount = Math.floor((loaded_size / total_size) * 100000) / 1000
-				let main_text = total_size >= 458752
+				let main_text = total_size >= 65536
 					? `${amount}% (Received: ${Math.floor((uploaded_size / total_size) * 100000) / 1000}%)`
 					: `${amount}%`
 				percentage.innerText = total_files > 1
@@ -67,6 +67,7 @@ function set_upload_file_logic(form, replace) {
 		}
 
 		let names = []
+		let requests = 0
 
 		async function send_file(file) {
 			total_files += 1
@@ -76,34 +77,22 @@ function set_upload_file_logic(form, replace) {
 			const fragments = []
 			let i = 1
 			while (!errored) {
-				let final_done = false
-				let values = []
-				let length = 0
-				for (let _ = 0; _ < 7; _++) {
-					const { value, done } = await reader.read(new Uint8Array(65536))
-					values.push(value)
-					length += value.length
-					loaded_size += value.length
-					final_done = done
-					update_percentage()
-					if (final_done) break
-				}
-				const buffer = new Uint8Array(length)
-				let offset = 0
-				for (const [i, value] of values.entries()) {
-					buffer.set(value, offset)
-					offset += value.length
-				}
+				const { value, done } = await reader.read(new Uint8Array(65536))
+				if (requests >= 1000)
+					while (requests > 800)
+						await fragments.pop()
 				const current_i = i
 				log(`Sending ${file.name}'s fragment n°${i}...`)
+				requests++
 				fragments.push(fetch(`/upload/${id}/fragment`, {
 					method: "POST",
-					body: buffer,
+					body: value,
 					headers: {
 						Password: password,
 						FragmentNum: i++,
 					}
 				}).then(async result => {
+					requests--
 					if (result.status != 204) {
 						if (errored) return
 						errored = true
@@ -119,7 +108,7 @@ function set_upload_file_logic(form, replace) {
 					uploaded_size += buffer.length
 					update_percentage()
 				}))
-				if (final_done) break
+				if (done) break
 			}
 			log(`All of ${file.name}'s fragments were sent! Waiting for receival...`)
 			for (const promise of fragments) {
