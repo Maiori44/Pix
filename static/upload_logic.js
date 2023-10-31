@@ -26,6 +26,7 @@ function set_upload_file_logic(form, replace) {
 		let total_size = 0
 		let uploaded_files = 0
 		let uploaded_size = 0
+		let loaded_size = 0
 		let errored = false
 		let logs = 1
 		setInterval(() => {
@@ -55,10 +56,13 @@ function set_upload_file_logic(form, replace) {
 
 		function update_percentage() {
 			if (percentage) {
-				const amount = Math.floor((uploaded_size / total_size) * 100000) / 1000
-				percentage.innerText = total_files > 1
-					? `${amount}% (${uploaded_files}/${total_files})`
+				const amount = Math.floor((loaded_size / total_size) * 100000) / 1000
+				let main_text = total_size >= 95027200
+					? `${amount}% (Received: ${Math.floor((uploaded_size / total_size) * 100000) / 1000}%)`
 					: `${amount}%`
+				percentage.innerText = total_files > 1
+					? `${main_text} (${uploaded_files}/${total_files})`
+					: main_text
 			}
 		}
 
@@ -75,11 +79,13 @@ function set_upload_file_logic(form, replace) {
 				let final_done = false
 				let values = []
 				let length = 0
-				for (let _ = 0; _ < 1525; _++) {
+				for (let _ = 0; _ < 1450; _++) {
 					const { value, done } = await reader.read(new Uint8Array(65536))
 					values.push(value)
 					length += value.length
+					loaded_size += value.length
 					final_done = done
+					update_percentage()
 					if (final_done) break
 				}
 				const buffer = new Uint8Array(length)
