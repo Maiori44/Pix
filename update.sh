@@ -1,2 +1,2 @@
 #!/bin/sh
-git pull && systemctl --user restart pix.service
+git pull && systemctl --user restart pix.service --now
