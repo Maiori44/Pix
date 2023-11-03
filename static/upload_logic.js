@@ -3,6 +3,7 @@ function set_upload_file_logic(form, replace) {
 		e.preventDefault()
 		const files = document.getElementById("file")
 		const text = document.getElementById("title")
+		const flags = document.querySelectorAll(".flag")
 		let percentage, list
 		form.addEventListener("animationend", () => {
 			form.innerHTML = "<h2 id=\"uploading-text\">Uploading</h2>\n"
@@ -112,12 +113,24 @@ function set_upload_file_logic(form, replace) {
 				await promise
 			}
 			log(`All of ${file.name}'s fragments were received! Finishing upload...`)
+			let flags_value
+			if (!replace) {
+				flags_value = 0
+				flags.forEach(td => {
+					const flag = td.children[0]
+					if (flag.checked)
+						flags_value += parseInt(flag.value)
+				})
+				console.log(flags_value)
+				return
+			}
 			const finish_result = await fetch(`/upload/${id}/${replace ? "replace" : "finish"}`, {
 				method: "POST",
 				body: `${file.type}\n${replace ?? file.name}`,
 				headers: {
 					Password: password,
-					IP: ip
+					IP: ip,
+					Flags: flags,
 				}
 			})
 			const result_body = await finish_result.text()
