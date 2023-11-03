@@ -184,7 +184,9 @@ fieldset {
 	/*display: block;*/
 	text-align: center;
 	font-size: small;
-	width: 5%;
+	max-width: 2px;
+	min-width: 2px;
+	width: 2px;
 	padding-bottom: 5px;
 	accent-color: black;
 }
