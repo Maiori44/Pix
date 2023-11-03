@@ -6,12 +6,13 @@ CREATE TABLE IF NOT EXISTS Files (
 	upload_date INTEGER,
 	owner TEXT,
 	edit_date INTEGER,
+	flags INTEGER,
 	PRIMARY KEY(uuid)
 );
 ---get_info:
 SELECT content_type, upload_date, owner, edit_date FROM Files WHERE uuid = ?;
 ---add_file:
-INSERT INTO Files VALUES (?, ?, ?, ?, ?, NULL);
+INSERT INTO Files VALUES (?, ?, ?, ?, ?, NULL, ?);
 ---delete_file:
 DELETE FROM Files WHERE uuid = ?;
 ---replace_file:
