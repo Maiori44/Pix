@@ -4,6 +4,11 @@
 @define UPLOAD_DATE 2
 @define OWNER 3
 @define EDIT_DATE 4
+@define FLAGS 5
+
+@define FLAG_UNLISTED 1
+@define FLAG_FAVOURITE 2
+@define FLAG_TEMPORARY 4
 
 local fs = require("fs")
 
@@ -63,6 +68,12 @@ local fn parse_uuid(filename) {
 	}
 }*/
 
+local fn has_flags(flags, i, ...) {
+	if local flag = select(i, ...) {
+		return (flags & flag) != 0, has_flags(flags, i + 1, ...)
+	}
+}
+
 return {
 	get_info = fn(filename) {
 		return codes.get_info::reset()::bind(parse_uuid(filename))::step() || {}
@@ -75,6 +86,15 @@ return {
 	}
 	replace_file = fn(filename, content_type) {
 		codes.replace_file::reset()::bind(content_type, os.time(), parse_uuid(filename))::step()
+	}
+	has_flags = fn(filename, ...) {
+		return has_flags(
+			(type(filename) == "string")
+				? (codes.get_flags::reset()::bind(parse_uuid(filename))::step()[1] || 0)
+				: filename,
+			1,
+			...
+		)
 	}
 }
 

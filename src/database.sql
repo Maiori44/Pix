@@ -10,11 +10,13 @@ CREATE TABLE IF NOT EXISTS Files (
 	PRIMARY KEY(uuid)
 );
 ---get_info:
-SELECT content_type, upload_date, owner, edit_date FROM Files WHERE uuid = ?;
+SELECT content_type, upload_date, owner, edit_date, flags FROM Files WHERE uuid = ?;
 ---add_file:
 INSERT INTO Files VALUES (?, ?, ?, ?, ?, NULL, ?);
 ---delete_file:
 DELETE FROM Files WHERE uuid = ?;
 ---replace_file:
 UPDATE Files SET content_type = ?, edit_date = ? WHERE uuid = ?;
+---get_flags:
+SELECT flags FROM Files WHERE uuid = ?;
 ---

@@ -121,8 +121,6 @@ function set_upload_file_logic(form, replace) {
 					if (flag.checked)
 						flags_value += parseInt(flag.value)
 				})
-				console.log(flags_value)
-				return
 			}
 			const finish_result = await fetch(`/upload/${id}/${replace ? "replace" : "finish"}`, {
 				method: "POST",
@@ -130,7 +128,7 @@ function set_upload_file_logic(form, replace) {
 				headers: {
 					Password: password,
 					IP: ip,
-					Flags: flags,
+					Flags: flags_value,
 				}
 			})
 			const result_body = await finish_result.text()
