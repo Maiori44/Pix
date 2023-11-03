@@ -112,6 +112,9 @@ local actions = {
 			}
 			local size = 0
 			local tot_files = #files
+			if tot_files == 0 {
+				finish_request(res, "text/plain", convert_bytes(size))
+			}
 			local fn read_file_size(err, file_info) {
 				if !tot_files {
 					return
