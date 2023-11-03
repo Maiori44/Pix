@@ -18,18 +18,35 @@
 				<span id="overflow-checker">
 					<span class="bigger" id="title">Upload file</span>
 					<form action="upload" enctype="multipart/form-data" method="post" id="upload-form">
-						<h3>
+						<b class="big">
 							<table>
 								<tr>
 									<td>Password</td>
-									<td><input type="password" maxlength="1000" id="password" required></td>
+									<td colspan="4">
+										<input type="password" maxlength="1000" id="password" required>
+									</td>
 								</tr>
 								<tr>
 									<td>Files to send</td>
-									<td><input type="file" id="file" multiple required></td>
+									<td colspan="4"><input type="file" id="file" multiple required></td>
+								</tr>
+								<tr>
+									<td></td>
+									<td class="flag">
+										<input type="checkbox" id="hidden" required>
+										Hidden
+									</td>
+									<td class="flag">
+										<input type="checkbox" id="hidden" required>
+										Priority
+									</td>
+									<td class="flag">
+										<input type="checkbox" id="hidden" required>
+										Temporary
+									</td>
 								</tr>
 							</table>
-						</h3>
+						</b>
 						<span id="bottom">
 							<a href="/files.html"><button type="button">See all files</button></a>
 							<input type="submit" value="Upload file">

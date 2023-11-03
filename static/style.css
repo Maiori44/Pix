@@ -180,6 +180,15 @@ fieldset {
 	padding-inline: 5px;
 }
 
+.flag {
+	/*display: block;*/
+	text-align: center;
+	font-size: small;
+	width: 5%;
+	padding-bottom: 5px;
+	accent-color: black;
+}
+
 #bottom {
 	display: flex;
 	justify-content: space-between;
