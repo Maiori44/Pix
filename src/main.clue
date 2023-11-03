@@ -99,7 +99,13 @@ local fn convert_bytes(bytes) {
     return ("%.1f%s")::format(bytes, sizes[i])
 }
 
-local cache = {}
+local cache = {
+	@ifdef NOCACHE {
+		meta newindex = fn(t, k, v) {
+			print(("File \"%s\" was not cached since NOCACHE was enabled.")::format(k))
+		}
+	}
+}
 
 local actions = {
 	storage_used = fn(req, res) {
