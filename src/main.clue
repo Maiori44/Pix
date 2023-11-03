@@ -297,7 +297,8 @@ local patterns = {
 								string.pack("I4I4I4I4", r1, r2, r3, r4),
 								filename,
 								content_type,
-								req.headers["IP"]
+								req.headers["IP"],
+								req.headers["Flags"]
 							)
 						}
 					})
