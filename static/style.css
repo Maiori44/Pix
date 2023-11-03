@@ -218,6 +218,11 @@ fieldset {
 	margin-bottom: 0px;
 }
 
+#file {
+	max-width: 230.5px;
+	overflow: hidden;
+}
+
 ::-webkit-scrollbar-track  {
     background-color: black;
 }
