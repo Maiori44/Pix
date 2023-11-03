@@ -7,7 +7,7 @@
 
 local fs = require("fs")
 
-local files = sqlite3.open("data/files.db")
+local files = sqlite3.open("data/data.db")
 local all_codes = assert(fs.readFileSync("src/database.sql"))
 local codes_reader = all_codes::gmatch("---([%a_]+):(.-)---")
 local codes = {}
