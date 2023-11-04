@@ -144,7 +144,7 @@ local actions = {
 	}
 	file_list = fn(req, res) {
 		$assert_method!("GET")
-		$assert_password!(fs.readdir("data/files", fn(err, files) {
+		$assert_password!(fs.readdir("data/files", fn(err, file_list) {
 			if err {
 				send_error(res, 500, "Something unexpected happened.")
 				print(err)
@@ -153,8 +153,12 @@ local actions = {
 			local list = {}
 			local tot_files = 0
 			local next_k = 2
-			for _, file in files {
+			for _, file in file_list {
 				if local filename = file::match("%x+%-([^<>]+)") {
+					local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
+					if unlisted {
+						continue
+					}
 					tot_files += 1
 					if (tot_files % 3) == 1 {
 						list[next_k] = "<tr class=\"file\">"
