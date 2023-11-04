@@ -12,6 +12,14 @@
 
 local fs = require("fs")
 
+if !fs.existsSync("data") {
+	fs.mkdirSync("data")
+}
+
+if !fs.existsSync("data/files") {
+	fs.mkdirSync("data/files")
+}
+
 local files = sqlite3.open("data/data.db")
 local all_codes = assert(fs.readFileSync("src/database.sql"))
 local codes_reader = all_codes::gmatch("---([%a_]+):(.-)---")
