@@ -105,7 +105,7 @@ return {
 	has_flags = fn(filename, ...) {
 		return has_flags(
 			(type(filename) == "string")
-				? (codes.get_flags::reset()::bind(parse_uuid(filename))::step()[1] || 0)
+				? (codes.get_flags::reset()::bind(parse_uuid(filename))::step()?[1] || 0)
 				: filename,
 			1,
 			...
