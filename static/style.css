@@ -175,6 +175,12 @@ fieldset {
 	overflow-wrap: break-word;
 }
 
+.favourite {
+	position: relative;
+	top: -10px;
+	right: 0px;
+}
+
 .preview-file {
 	height: auto;
 	padding-inline: 5px;
