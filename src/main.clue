@@ -5,7 +5,7 @@
 
 @macro assert_method(wanted) {
 	if req.method != $wanted {
-		send_error(res, 400, "Wrong request method.")
+		send_error(req, res, 400, "Wrong request method.")
 		return
 	}
 }
@@ -13,12 +13,12 @@
 @macro assert_password(code) {
 	fs.readFile(".password", fn(err, password) {
 		if err {
-			send_error(res, 500, "Something unexpected happened.")
+			send_error(req, res, 500, "Something unexpected happened.")
 			print(err)
 			return
 		}
 		if req.headers["Password"] != password::match("[^\n]+") {
-			send_error(res, 401, "Wrong password.")
+			send_error(req, res, 401, "Wrong password.")
 			return
 		}
 		$code
@@ -28,7 +28,7 @@
 @macro assert_owner(filename) {
 	local owner = files.get_info($filename)[$OWNER]
 	if !owner || (owner != req.ip) {
-		send_error(res, 403, "File not uploaded by you.")
+		send_error(req, res, 403, "File not uploaded by you.")
 		return
 	}
 }
@@ -46,17 +46,17 @@
 
 @macro prepare_finish() {
 	if !fragments.assert_exist(id) {
-		send_error(res, 400, "No file data was ever sent.")
+		send_error(req, res, 400, "No file data was ever sent.")
 		return
 	}
 	local ok, last_i = fragments.get_last_fragment_index(id)
 	if !ok {
-		send_error(res, 424, ("Missing fragment %d.")::format(last_i))
+		send_error(req, res, 424, ("Missing fragment %d.")::format(last_i))
 		return
 	}
 	local content_type, filename = body::match("^(.*)\n(.+)$")
 	if !filename {
-		send_error(res, 400, "No file name was sent.")
+		send_error(req, res, 400, "No file name was sent.")
 		return
 	}
 }
@@ -64,7 +64,7 @@
 static pprint = require("pretty-print").prettyPrint
 static error_html
 
-static fn finish_request(res, type, result, status_code) {
+static fn finish_request(req, res, type, result, status_code) {
 	if res.headersSent {
 		return
 	}
@@ -76,10 +76,17 @@ static fn finish_request(res, type, result, status_code) {
 		res::setHeader("Content-Length", #result)
 	}
 	res::finish(result)
+	print(("\27[1;34m%s\27[1;36m %s\27[0m from \27[1;33m%s\27[0m -> %s%d\27[0m")::format(
+		req.method,
+		req.url,
+		req.ip,
+		math.floor(res.statusCode / 100) == 2 ? "\27[0;32m" : "\27[0;35m",
+		res.statusCode
+	))
 }
 
-static fn send_error(res, code, message) {
-	finish_request(res, "text/html", error_html::format(code, message), code)
+static fn send_error(req, res, code, message) {
+	finish_request(req, res, "text/html", error_html::format(code, message), code)
 }
 
 local childprocess = require('childprocess')
@@ -113,21 +120,21 @@ local actions = {
 		$assert_method!("GET")
 		fs.readdir("data/files", fn(err, files) {
 			if err {
-				send_error(res, 500, "Something unexpected happened.")
+				send_error(req, res, 500, "Something unexpected happened.")
 				print(err)
 				return
 			}
 			local size = 0
 			local tot_files = #files
 			if tot_files == 0 {
-				finish_request(res, "text/plain", convert_bytes(size))
+				finish_request(req, res, "text/plain", convert_bytes(size))
 			}
 			local fn read_file_size(err, file_info) {
 				if !tot_files {
 					return
 				}
 				if err {
-					send_error(res, 500, "Something unexpected happened.")
+					send_error(req, res, 500, "Something unexpected happened.")
 					print(err)
 					tot_files = nil
 					return
@@ -135,7 +142,7 @@ local actions = {
 				size += file_info.size
 				tot_files -= 1
 				if tot_files == 0 {
-					finish_request(res, "text/plain", convert_bytes(size))
+					finish_request(req, res, "text/plain", convert_bytes(size))
 				}
 			}
 			for k, file in files {
@@ -147,7 +154,7 @@ local actions = {
 		$assert_method!("GET")
 		$assert_password!(fs.readdir("data/files", fn(err, file_list) {
 			if err {
-				send_error(res, 500, "Something unexpected happened.")
+				send_error(req, res, 500, "Something unexpected happened.")
 				print(err)
 				return
 			}
@@ -194,7 +201,7 @@ local actions = {
 			}
 			list[next_k] = "</table>"
 			list[1] = ("<br>%d files total<table>")::format(tot_files)
-			finish_request(res, "text/html", table.concat(list))
+			finish_request(req, res, "text/html", table.concat(list))
 		}))
 	}
 	delete = fn(req, res) {
@@ -203,11 +210,11 @@ local actions = {
 			$assert_owner!(body)
 			fs.unlink("data/files/" .. body, fn(err) {
 				if err {
-					send_error(res, 404, "File not found.")
+					send_error(req, res, 404, "File not found.")
 					print(err)
 					return
 				}
-				finish_request(res, nil, nil, 204)
+				finish_request(req, res, nil, nil, 204)
 				files.delete_file(body)
 			})
 		}))
@@ -215,18 +222,18 @@ local actions = {
 }
 
 local patterns = {
-	["^/+$"] = fn(_, res) {
+	["^/+$"] = fn(req, res) {
 		res::setHeader("Location", "index.html")
-		finish_request(res, "text/plain", "Redirect to index.html", 303)
+		finish_request(req, res, "text/plain", "Redirect to index.html", 303)
 	}
 	["^/+([%a_]+%.%a+)$"] = fn(req, res, filename) {
 		$assert_method!("GET")
 		if local cached = cache[filename] {
-			finish_request(res, cached.type, cached.file)
+			finish_request(req, res, cached.type, cached.file)
 		} else {
 			fs.readFile("static/" .. filename, fn(err, file) {
 				if err {
-					send_error(res, 404, "File not found.")
+					send_error(req, res, 404, "File not found.")
 					print(err)
 					return
 				}
@@ -241,7 +248,7 @@ local patterns = {
 					type = $
 					file = $
 				}
-				finish_request(res, type, file)
+				finish_request(req, res, type, file)
 			})
 		}
 	}
@@ -250,20 +257,20 @@ local patterns = {
 			"GET" => {
 				fs.readFile("data/files/" .. filename, fn(err, file) {
 					if err {
-						send_error(res, 404, "File not found.")
+						send_error(req, res, 404, "File not found.")
 						print(err)
 						return
 					}
 					local info = files.get_info(filename)
 					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
 					res::setHeader("Edit-Date", info[$EDIT_DATE])
-					finish_request(res, info[$CONTENT_TYPE] || "image/png", file)
+					finish_request(req, res, info[$CONTENT_TYPE] || "image/png", file)
 				})
 			}
 			"HEAD" => {
 				fs.stat("data/files/" .. filename, fn(err, file_info) {
 					if err {
-						send_error(res, 404, "File not found.")
+						send_error(req, res, 404, "File not found.")
 						print(err)
 						return
 					}
@@ -271,11 +278,11 @@ local patterns = {
 					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
 					res::setHeader("Edit-Date", info[$EDIT_DATE])
 					res::setHeader("Content-Length", file_info.size)
-					finish_request(res, info[$CONTENT_TYPE] || "image/png")
+					finish_request(req, res, info[$CONTENT_TYPE] || "image/png")
 				})
 			}
 			default => {
-				send_error(res, 400, "Wrong request method.")
+				send_error(req, res, 400, "Wrong request method.")
 			}
 		}
 	}
@@ -283,23 +290,23 @@ local patterns = {
 		if local action = actions[action] {
 			action(req, res)
 		} else {
-			send_error(res, 404, "Unknown action.")
+			send_error(req, res, 404, "Unknown action.")
 		}
 	}
 	["^/+upload/+(%d+)/+(%l+)$"] = fn(req, res, id, action) {
 		$assert_method!("POST")
 		$assert_password!($read_body!({
 			if fragments.assert_timeout(id) {
-				send_error(res, 408, "Upload timeout.")
+				send_error(req, res, 408, "Upload timeout.")
 				return
 			}
 			match action {
 				"fragment" => {
 					if local i = tonumber(req.headers["FragmentNum"]) {
 						fragments.add_fragment(id, i, body)
-						finish_request(res, nil, nil, 204)
+						finish_request(req, res, nil, nil, 204)
 					} else {
-						send_error(res, 400, "Missing fragment number.")
+						send_error(req, res, 400, "Missing fragment number.")
 					}
 				}
 				"finish" => {
@@ -310,6 +317,7 @@ local patterns = {
 					local r4 = math.random(0, 2 ^ 32 - 1)
 					local flags = tonumber(req.headers["Flags"]) || 0
 					fragments.save_file(
+						req,
 						res,
 						id,
 						last_i,
@@ -334,7 +342,7 @@ local patterns = {
 					local path = "data/files/" .. filename
 					fs.readFile(path, fn(_, old_file) {
 						fs.unlink(path)
-						fragments.save_file(res, id, last_i, filename, fn(err) {
+						fragments.save_file(req, res, id, last_i, filename, fn(err) {
 							if err {
 								fs.writeFile(path, old_file)
 							} else {
@@ -344,7 +352,7 @@ local patterns = {
 					})
 				}
 				default => {
-					send_error(res, 404, "Unknown action.")
+					send_error(req, res, 404, "Unknown action.")
 				}
 			}
 		}))
@@ -362,5 +370,5 @@ http.createServer(fn(req, res) {
 			return
 		}
 	}
-	send_error(res, 404, "Page not found.")
+	send_error(req, res, 404, "Page not found.")
 })::listen(port, ip)

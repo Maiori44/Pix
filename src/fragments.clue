@@ -8,20 +8,20 @@ local fs = require("fs")
 
 local uploading = {}
 
-local fn write_file_fragment(res, id, i, last_i, filename, callback) {
+local fn write_file_fragment(req, res, id, i, last_i, filename, callback) {
 	fs.appendFile("data/files/" .. filename, uploading[id].data[i], fn(err) {
 		if err {
-			send_error(res, 500, "Something unexpected happened.")
+			send_error(req, res, 500, "Something unexpected happened.")
 			callback(err)
 			return
 		}
 		if i == last_i {
 			uv.timer_set_repeat(uploading[id].timeout, 1)
 			uv.timer_again(uploading[id].timeout)
-			finish_request(res, "text/plain", filename, 200)
+			finish_request(req, res, "text/plain", filename, 200)
 			callback()
 		} else {
-			write_file_fragment(res, id, i + 1, last_i, filename, callback)
+			write_file_fragment(req, res, id, i + 1, last_i, filename, callback)
 		}
 	})
 }
@@ -84,20 +84,20 @@ return {
 		} until merged_size == finished_file.size
 		return true, last_i
 	}
-	save_file = fn(res, id, last_i, filename, temporary, callback) {
+	save_file = fn(req, res, id, last_i, filename, temporary, callback) {
 		if temporary {
 			fs.symlink("/tmp/" .. filename, "data/files/" .. filename, fn(err) {
 				if err {
-					send_error(res, 500, "Something unexpected happened.")
+					send_error(req, res, 500, "Something unexpected happened.")
 					print(err)
 					callback(err)
 					return
 				}
-				write_file_fragment(res, id, 1, last_i, filename, callback)
+				write_file_fragment(req, res, id, 1, last_i, filename, callback)
 				timer.setTimeout($TEMPORARY_FILE_TIMEOUT, delete_temporary_file, filename)
 			})
 		} else {
-			write_file_fragment(res, id, 1, last_i, filename, callback)
+			write_file_fragment(req, res, id, 1, last_i, filename, callback)
 		}
 	}
 }
