@@ -13,6 +13,9 @@ onmessage = async (message) => {
 				msg: `Sending ${file.name}'s fragment n°${i}...`
 			}
 		})
+		if (fragments.length >= 500)
+			while (fragments[0])
+				await fragments.pop()
 		const current_i = i
 		fragments.push(fetch(`/upload/${id}/fragment`, {
 			method: "POST",
