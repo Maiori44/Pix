@@ -1,3 +1,5 @@
+@import "files"
+
 local timer = require("timer")
 local uv = require("uv")
 local fs = require("fs")
@@ -64,7 +66,24 @@ return {
 		} until merged_size == finished_file.size
 		return true, last_i
 	}
-	save_file = fn(res, id, last_i, filename, callback) {
-		write_file_fragment(res, id, 1, last_i, filename, callback)
+	save_file = fn(res, id, last_i, filename, temporary, callback) {
+		if temporary {
+			fs.symlink("/tmp/" .. filename, "data/files/" .. filename, fn(err) {
+				if err {
+					send_error(res, 500, "Something unexpected happened.")
+					print(err)
+					callback(err)
+					return
+				}
+				write_file_fragment(res, id, 1, last_i, filename, callback)
+				timer.setTimeout(3600000, fn {
+					files::delete_file(filename)
+					fs.unlink("data/files/" .. filename)
+					fs.unlink("/tmp/" .. filename)
+				})
+			})
+		} else {
+			write_file_fragment(res, id, 1, last_i, filename, callback)
+		}
 	}
 }
