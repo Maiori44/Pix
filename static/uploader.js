@@ -10,7 +10,7 @@ onmessage = async (message) => {
 			type: "fragment_loaded",
 			data: {
 				size: value.length,
-				msg: `Sending ${file.name}'s fragment n°${i++}...`
+				msg: `Sending ${file.name}'s fragment n°${i}...`
 			}
 		})
 		const current_i = i
