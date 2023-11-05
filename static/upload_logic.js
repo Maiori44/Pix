@@ -112,7 +112,7 @@ function set_upload_file_logic(form, replace) {
 					update_percentage()
 				}, reason => {
 					errored = true
-					log(`${filename}: ${reason}`)
+					log(`${file.name}: ${reason}`)
 				}))
 				if (done) break
 			}
