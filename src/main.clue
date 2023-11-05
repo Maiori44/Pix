@@ -27,7 +27,7 @@
 
 @macro assert_owner(filename) {
 	local owner = files.get_info($filename)[$OWNER]
-	if !owner || (owner != req.headers["IP"]) {
+	if !owner || (owner != req.ip) {
 		send_error(res, 403, "File not uploaded by you.")
 		return
 	}
@@ -321,7 +321,7 @@ local patterns = {
 									string.pack("I4I4I4I4", r1, r2, r3, r4),
 									filename,
 									content_type,
-									req.headers["IP"],
+									req.ip,
 									flags
 								)
 							}
@@ -352,6 +352,7 @@ local patterns = {
 }
 
 http.createServer(fn(req, res) {
+	req.ip = req.headers["X-Forwarded-For"]?::match("^[^,]*") || req.socket::address().ip
 	local path = querystring.urldecode(req.url::match("^(.-)%?.+$") || req.url)
 	for pattern, func of patterns {
 		local m1, m2 = path::match(pattern)

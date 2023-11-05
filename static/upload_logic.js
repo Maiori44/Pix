@@ -31,7 +31,6 @@ function set_upload_file_logic(form, replace) {
 		form.style.animation = "fade-out 140ms linear forwards"
 		text.style.animation = "fade-out 140ms linear forwards"
 		const password = document.getElementById("password").value
-		const ip = await (await fetch("https://api.ipify.org")).text()
 		let total_files = 0
 		let total_size = 0
 		let uploaded_files = 0
@@ -118,7 +117,6 @@ function set_upload_file_logic(form, replace) {
 				file: file,
 				password: password,
 				flags: flags_value,
-				ip: ip,
 				replace: replace,
 			})
 			worker.addEventListener("message", (message) => {

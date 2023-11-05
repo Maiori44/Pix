@@ -19,8 +19,7 @@ if (!file) {
 			method: "DELETE",
 			body: file,
 			headers: {
-				Password: document.getElementById("password").value,
-				IP: await (await fetch("https://api.ipify.org")).text()
+				Password: document.getElementById("password").value
 			}
 		})
 		const text = await result.text()

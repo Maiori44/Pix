@@ -1,5 +1,5 @@
 onmessage = async (message) => {
-	const { id, file, password, flags, ip, replace } = message.data
+	const { id, file, password, flags, replace } = message.data
 	const reader = file.stream().getReader({ mode: "byob" })
 	const fragments = []
 	let finished = false
@@ -58,7 +58,6 @@ onmessage = async (message) => {
 		body: `${file.type}\n${replace ?? file.name}`,
 		headers: {
 			Password: password,
-			IP: ip,
 			Flags: flags,
 		}
 	})
