@@ -19,4 +19,6 @@ DELETE FROM Files WHERE uuid = ?;
 UPDATE Files SET content_type = ?, edit_date = ? WHERE uuid = ?;
 ---get_flags:
 SELECT flags FROM Files WHERE uuid = ?;
+---get_flagged_files:
+SELECT uuid, filename, upload_date FROM Files WHERE flags & ?;
 ---

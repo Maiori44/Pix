@@ -1,5 +1,7 @@
 @import "files"
 
+@define TEMPORARY_FILE_TIMEOUT 3600000
+
 local timer = require("timer")
 local uv = require("uv")
 local fs = require("fs")
@@ -22,6 +24,22 @@ local fn write_file_fragment(res, id, i, last_i, filename, callback) {
 			write_file_fragment(res, id, i + 1, last_i, filename, callback)
 		}
 	})
+}
+
+local fn delete_temporary_file(filename) {
+	files.delete_file(filename)
+	fs.unlink("data/files/" .. filename)
+	fs.unlink("/tmp/" .. filename)
+}
+
+for _, data in files.get_flagged_files($FLAG_TEMPORARY) {
+	local uuid, filename, upload_date = unpack(data)
+	local r1, r2, r3, r4 = ("I4I4I4I4")::unpack(uuid)
+	timer.setTimeout(
+		math.max(tonumber((upload_date + $TEMPORARY_FILE_TIMEOUT) - os.time()), 0) * 1000,
+		delete_temporary_file,
+		("%08x%08x%08x%08x-%s")::format(r1, r2, r3, r4, filename)
+	)
 }
 
 return {
@@ -76,11 +94,7 @@ return {
 					return
 				}
 				write_file_fragment(res, id, 1, last_i, filename, callback)
-				timer.setTimeout(3600000, fn {
-					files::delete_file(filename)
-					fs.unlink("data/files/" .. filename)
-					fs.unlink("/tmp/" .. filename)
-				})
+				timer.setTimeout($TEMPORARY_FILE_TIMEOUT, delete_temporary_file, filename)
 			})
 		} else {
 			write_file_fragment(res, id, 1, last_i, filename, callback)
