@@ -286,7 +286,7 @@ local patterns = {
 			send_error(res, 404, "Unknown action.")
 		}
 	}
-	["^/+upload/+(%d+)/(%l+)$"] = fn(req, res, id, action) {
+	["^/+upload/+(%d+)/+(%l+)$"] = fn(req, res, id, action) {
 		$assert_method!("POST")
 		$assert_password!($read_body!({
 			if fragments.assert_timeout(id) {
@@ -352,7 +352,7 @@ local patterns = {
 }
 
 http.createServer(fn(req, res) {
-	local path = querystring.urldecode(http.parseUrl(req.url).pathname)
+	local path = querystring.urldecode(req.url::match("^(.-)%?.+$") || req.url)
 	for pattern, func of patterns {
 		local m1, m2 = path::match(pattern)
 		if m1 {
