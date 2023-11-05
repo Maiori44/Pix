@@ -83,26 +83,26 @@ local fn has_flags(flags, i, ...) {
 }
 
 return {
-	get_info = fn(filename) {
+	get_info = fn(self, filename) {
 		return codes.get_info::reset()::bind(parse_uuid(filename))::step() || {}
 	}
-	add_file = fn(uuid, filename, content_type, ip, flags) {
+	add_file = fn(self, uuid, filename, content_type, ip, flags) {
 		codes.add_file::reset()::bind(
 			sqlite3.blob(uuid),
 			filename,
 			content_type,
 			os.time(),
 			ip,
-			tonumber(flags)
+			flags
 		)::step()
 	}
-	delete_file = fn(filename) {
+	delete_file = fn(self, filename) {
 		codes.delete_file::reset()::bind(parse_uuid(filename))::step()
 	}
-	replace_file = fn(filename, content_type) {
+	replace_file = fn(self, filename, content_type) {
 		codes.replace_file::reset()::bind(content_type, os.time(), parse_uuid(filename))::step()
 	}
-	has_flags = fn(filename, ...) {
+	has_flags = fn(self, filename, ...) {
 		return has_flags(
 			(type(filename) == "string")
 				? (codes.get_flags::reset()::bind(parse_uuid(filename))::step()?[1] || 0)

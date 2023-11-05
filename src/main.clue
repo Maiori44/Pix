@@ -26,7 +26,7 @@
 }
 
 @macro assert_owner(filename) {
-	local owner = files.get_info($filename)[$OWNER]
+	local owner = files::get_info($filename)[$OWNER]
 	if !owner || (owner != req.headers["IP"]) {
 		send_error(res, 403, "File not uploaded by you.")
 		return
@@ -62,6 +62,7 @@
 }
 
 static pprint = require("pretty-print").prettyPrint
+static error_html
 
 static fn finish_request(res, type, result, status_code) {
 	if res.headersSent {
@@ -77,17 +78,17 @@ static fn finish_request(res, type, result, status_code) {
 	res::finish(result)
 }
 
+static fn send_error(res, code, message) {
+	finish_request(res, "text/html", error_html::format(code, message), code)
+}
+
 local childprocess = require('childprocess')
 local querystring = require("querystring")
 local http = require("http")
 local fs = require("fs")
 
 local port, ip = args[2] || 41023, args[3] || "0.0.0.0"
-local error_html = assert(fs.readFileSync("src/error.html"))
-
-local fn send_error(res, code, message) {
-	finish_request(res, "text/html", error_html::format(code, message), code)
-}
+error_html = assert(fs.readFileSync("src/error.html"))
 
 local fn convert_bytes(bytes) {
 	local sizes = {"B", "KB", "MB", "GB"}
@@ -156,7 +157,7 @@ local actions = {
 			local favourite_k = 3
 			for _, file in file_list {
 				if local filename = file::match("%x+%-([^<>]+)") {
-					local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
+					local unlisted, favourite = files::has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
 					if unlisted {
 						continue
 					}
@@ -207,7 +208,7 @@ local actions = {
 					return
 				}
 				finish_request(res, nil, nil, 204)
-				files.delete_file(body)
+				files::delete_file(body)
 			})
 		}))
 	}
@@ -253,7 +254,7 @@ local patterns = {
 						print(err)
 						return
 					}
-					local info = files.get_info(filename)
+					local info = files::get_info(filename)
 					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
 					res::setHeader("Edit-Date", info[$EDIT_DATE])
 					finish_request(res, info[$CONTENT_TYPE] || "image/png", file)
@@ -266,7 +267,7 @@ local patterns = {
 						print(err)
 						return
 					}
-					local info = files.get_info(filename)
+					local info = files::get_info(filename)
 					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
 					res::setHeader("Edit-Date", info[$EDIT_DATE])
 					res::setHeader("Content-Length", file_info.size)
@@ -308,17 +309,25 @@ local patterns = {
 					local r3 = ((math.random(0, 2 ^ 32 - 1) & 0xBFFFFFFF) | 0x80000000) % 2 ^ 32
 					local r4 = math.random(0, 2 ^ 32 - 1)
 					local uuid = ("%08x%08x%08x%08x")::format(r1, r2, r3, r4)
-					fragments.save_file(res, id, last_i, ("%s-%s")::format(uuid, filename), fn(err) {
-						if !err {
-							files.add_file(
-								string.pack("I4I4I4I4", r1, r2, r3, r4),
-								filename,
-								content_type,
-								req.headers["IP"],
-								req.headers["Flags"]
-							)
+					local flags = tonumber(req.headers["Flags"]) || 0
+					fragments.save_file(
+						res,
+						id,
+						last_i,
+						("%s-%s")::format(uuid, filename),
+						files::has_flags(flags, $FLAG_TEMPORARY),
+						fn(err) {
+							if !err {
+								files::add_file(
+									string.pack("I4I4I4I4", r1, r2, r3, r4),
+									filename,
+									content_type,
+									req.headers["IP"],
+									flags
+								)
+							}
 						}
-					})
+					)
 				}
 				"replace" => {
 					$prepare_finish!()
@@ -330,7 +339,7 @@ local patterns = {
 							if err {
 								fs.writeFile(path, old_file)
 							} else {
-								files.replace_file(filename, content_type)
+								files::replace_file(filename, content_type)
 							}
 						})						
 					})
