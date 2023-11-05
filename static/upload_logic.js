@@ -110,6 +110,9 @@ function set_upload_file_logic(form, replace) {
 					log(`${file.name}'s fragment n°${current_i} was received!`)
 					uploaded_size += value.length
 					update_percentage()
+				}, reason => {
+					errored = true
+					log(`${filename}: ${reason}`)
 				}))
 				if (done) break
 			}
