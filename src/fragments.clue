@@ -36,7 +36,7 @@ for _, data in files.get_flagged_files($FLAG_TEMPORARY) {
 	local uuid, filename, upload_date = unpack(data)
 	local r1, r2, r3, r4 = ("I4I4I4I4")::unpack(uuid)
 	timer.setTimeout(
-		math.max(tonumber((upload_date + $TEMPORARY_FILE_TIMEOUT) - os.time()), 0) * 1000,
+		math.max(tonumber((upload_date * 1000 + $TEMPORARY_FILE_TIMEOUT) - os.time() * 1000), 0),
 		delete_temporary_file,
 		("%08x%08x%08x%08x-%s")::format(r1, r2, r3, r4, filename)
 	)
