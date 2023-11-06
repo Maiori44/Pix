@@ -339,16 +339,27 @@ local patterns = {
 				"replace" => {
 					$prepare_finish!()
 					$assert_owner!(filename)
-					local path = "data/files/" .. filename
-					fs.readFile(path, fn(_, old_file) {
-						fs.unlink(path)
-						fragments.save_file(req, res, id, last_i, filename, fn(err) {
-							if err {
-								fs.writeFile(path, old_file)
-							} else {
-								files.replace_file(filename, content_type)
-							}
-						})						
+					local rawpath = "data/files/" .. filename
+					fs.readlink(rawpath, fn(_, path = rawpath) {
+						fs.readFile(path, fn(_, old_file) {
+							fs.unlink(path, fn {
+								fragments.save_file(
+									req,
+									res,
+									id,
+									last_i,
+									filename,
+									false,
+									fn(err) {
+										if err {
+											fs.writeFile(path, old_file)
+										} else {
+											files.replace_file(filename, content_type)
+										}
+									}
+								)	
+							})
+						})
 					})
 				}
 				default => {

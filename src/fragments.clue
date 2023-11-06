@@ -83,8 +83,8 @@ return {
 		} until merged_size == finished_file.size
 		return true, last_i
 	}
-	save_file = fn(req, res, id, last_i, filename, temporary, callback) {
-		if temporary {
+	save_file = fn(req, res, id, last_i, filename, symlink, callback) {
+		if symlink {
 			fs.symlink("/tmp/" .. filename, "data/files/" .. filename, fn(err) {
 				if err {
 					send_error(req, res, 500, "Something unexpected happened.")
