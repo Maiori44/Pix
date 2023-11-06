@@ -150,7 +150,7 @@ local actions = {
 			}
 		})
 	}
-	file_list = fn(req, res) {
+	files = fn(req, res) {
 		$assert_method!("GET")
 		$assert_password!(fs.readdir("data/files", fn(err, file_list) {
 			if err {

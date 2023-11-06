@@ -2,7 +2,7 @@ const password_check = document.getElementById("password-check")
 
 password_check.addEventListener("submit", async e => {
 	e.preventDefault()
-	const result = await fetch("/file_list", {
+	const result = await fetch("/files", {
 		method: "GET",
 		headers: {
 			Password: document.getElementById("password").value
