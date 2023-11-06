@@ -2,7 +2,6 @@
 
 @define TEMPORARY_FILE_TIMEOUT 3600000
 
-local timer = require("timer")
 local uv = require("uv")
 local fs = require("fs")
 

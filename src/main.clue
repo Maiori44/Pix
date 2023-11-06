@@ -62,7 +62,24 @@
 }
 
 static pprint = require("pretty-print").prettyPrint
+static timer = require("timer")
 static error_html
+
+static fn log_request(req, res) {
+	print(("\27[1;34m%s\27[1;36m %s\27[0m from \27[1;33m%s\27[0m -> %s%d\27[0m")::format(
+		req.method,
+		req.url,
+		req.ip,
+		match math.floor(res.statusCode / 100) {
+			2 => "\27[0;32m",
+			3 => "\27[0;90m",
+			4 => "\27[0;35m",
+			5 => "\27[0;95m",
+			default => "",
+		},
+		res.statusCode
+	))
+}
 
 static fn finish_request(req, res, type, result, status_code) {
 	if res.headersSent {
@@ -76,13 +93,7 @@ static fn finish_request(req, res, type, result, status_code) {
 		res::setHeader("Content-Length", #result)
 	}
 	res::finish(result)
-	print(("\27[1;34m%s\27[1;36m %s\27[0m from \27[1;33m%s\27[0m -> %s%d\27[0m")::format(
-		req.method,
-		req.url,
-		req.ip,
-		math.floor(res.statusCode / 100) == 2 ? "\27[0;32m" : "\27[0;35m",
-		res.statusCode
-	))
+	timer.setImmediate(log_request, req, res)
 }
 
 static fn send_error(req, res, code, message) {
@@ -118,7 +129,7 @@ local cache = {
 local patterns = {
 	["^/+$"] = fn(req, res) {
 		res::setHeader("Location", "index.html")
-		finish_request(req, res, "text/plain", "Redirect to index.html", 303)
+		finish_request(req, res, "text/plain", "Redirect to index.html\n", 303)
 	}
 	["^/+([%a_]+%.%a+)$"] = fn(req, res, filename) {
 		$assert_method!("GET")
