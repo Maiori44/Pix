@@ -282,19 +282,18 @@ local patterns = {
 				})
 			}
 			"DELETE" => {
-				$assert_method!("DELETE")
-				$assert_password!($read_body!({
-					$assert_owner!(body)
-					fs.unlink("data/files/" .. body, fn(err) {
+				$assert_password!({
+					$assert_owner!(filename)
+					fs.unlink("data/files/" .. filename, fn(err) {
 						if err {
 							send_error(req, res, 404, "File not found.")
 							print(err)
 							return
 						}
 						finish_request(req, res, nil, nil, 204)
-						files.delete_file(body)
+						files.delete_file(filename)
 					})
-				}))
+				})
 			}
 			default => {
 				send_error(req, res, 400, "Wrong request method.")

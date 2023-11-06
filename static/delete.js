@@ -15,9 +15,8 @@ if (!file) {
 	})
 	form.addEventListener("submit", async e => {
 		e.preventDefault()
-		const result = await fetch("/delete", {
+		const result = await fetch(`/files/${file}`, {
 			method: "DELETE",
-			body: file,
 			headers: {
 				Password: document.getElementById("password").value
 			}
