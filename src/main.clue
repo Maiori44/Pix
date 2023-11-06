@@ -115,7 +115,7 @@ local cache = {
 	}
 }
 
-local actions = {
+/*local actions = {
 	storage_used = fn(req, res) {
 		$assert_method!("GET")
 		fs.readdir("data/files", fn(err, files) {
@@ -219,7 +219,7 @@ local actions = {
 			})
 		}))
 	}
-}
+}*/
 
 local patterns = {
 	["^/+$"] = fn(req, res) {
@@ -281,18 +281,121 @@ local patterns = {
 					finish_request(req, res, info[$CONTENT_TYPE] || "image/png")
 				})
 			}
+			"DELETE" => {
+				$assert_method!("DELETE")
+				$assert_password!($read_body!({
+					$assert_owner!(body)
+					fs.unlink("data/files/" .. body, fn(err) {
+						if err {
+							send_error(req, res, 404, "File not found.")
+							print(err)
+							return
+						}
+						finish_request(req, res, nil, nil, 204)
+						files.delete_file(body)
+					})
+				}))
+			}
 			default => {
 				send_error(req, res, 400, "Wrong request method.")
 			}
 		}
 	}
-	["^/+([%l_]+)$"] = fn(req, res, action) {
+	["^/+files/*$"] = fn(req, res) {
+		$assert_method!("GET")
+		$assert_password!(fs.readdir("data/files", fn(err, file_list) {
+			if err {
+				send_error(req, res, 500, "Something unexpected happened.")
+				print(err)
+				return
+			}
+			local list = {}
+			local tot_files = 0
+			local next_k = 2
+			local favourite_k = 3
+			for _, file in file_list {
+				if local filename = file::match("%x+%-([^<>]+)") {
+					local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
+					if unlisted {
+						continue
+					}
+					tot_files += 1
+					if (tot_files % 3) == 1 {
+						list[next_k] = "<tr class=\"file\">"
+						next_k += 1
+					}
+					local link = ("<a href=\"%s\" class=\"link\">%s</a>")::format(
+						querystring.urlencode(file),
+						filename
+					)
+					if favourite {
+						list[next_k] = list[favourite_k]
+						list[favourite_k] = ("<td class=\"file\"><span class=\"favourite\">♥</span>%s</td>")::format(link)
+						favourite_k += 1
+						if list[favourite_k] == "</tr>" {
+							favourite_k += 2
+						}
+					} else {
+						list[next_k] = ("<td class=\"file\">%s</td>")::format(link)
+					}
+					if (tot_files % 3) == 0 {
+						list[next_k + 1] = "</tr>"
+						next_k += 2
+					} else {
+						next_k += 1
+					}
+				}
+			}
+			if list[next_k - 1] != "</tr>" {
+				list[next_k] = "</tr>"
+				next_k += 1
+			}
+			list[next_k] = "</table>"
+			list[1] = ("<br>%d files total<table>")::format(tot_files)
+			finish_request(req, res, "text/html", table.concat(list))
+		}))
+	}
+	["^/+storage_used$"] = fn(req, res) {
+		$assert_method!("GET")
+		fs.readdir("data/files", fn(err, files) {
+			if err {
+				send_error(req, res, 500, "Something unexpected happened.")
+				print(err)
+				return
+			}
+			local size = 0
+			local tot_files = #files
+			if tot_files == 0 {
+				finish_request(req, res, "text/plain", convert_bytes(size))
+			}
+			local fn read_file_size(err, file_info) {
+				if !tot_files {
+					return
+				}
+				if err {
+					send_error(req, res, 500, "Something unexpected happened.")
+					print(err)
+					tot_files = nil
+					return
+				}
+				size += file_info.size
+				tot_files -= 1
+				if tot_files == 0 {
+					finish_request(req, res, "text/plain", convert_bytes(size))
+				}
+			}
+			for k, file in files {
+				fs.stat("data/files/" .. file, read_file_size)
+			}
+		})
+	}
+	/*["^/+([%l_]+)$"] = fn(req, res, action) {
 		if local action = actions[action] {
 			action(req, res)
 		} else {
 			send_error(req, res, 404, "Unknown action.")
 		}
-	}
+	}*/
 	["^/+upload/+(%d+)/+(%l+)$"] = fn(req, res, id, action) {
 		$assert_method!("POST")
 		$assert_password!($read_body!({
