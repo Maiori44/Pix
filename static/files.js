@@ -85,7 +85,6 @@ password_check.addEventListener("submit", async e => {
 					const animation = other.innerText == other.og_name
 						? `fade-white-${color} 0.5s linear forwards`
 						: `fade-${other_color}-${color} 0.5s linear forwards`
-					console.log(animation)
 					document.querySelectorAll("*").forEach(element => {
 						element.style.animation = animation
 					})

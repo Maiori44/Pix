@@ -25,7 +25,6 @@ if (!file) {
 		if (result.status != 204) {
 			document.write(text.replace("/index.html", "/files.html"))
 		} else {
-			console.log(img.style.animation)
 			document.getElementById("warning-title").innerText = "File deleted."
 			document.getElementById("warning-info").classList.add("invisible")
 			document.getElementById("delete-button").remove()
