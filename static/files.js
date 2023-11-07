@@ -27,7 +27,7 @@ password_check.addEventListener("submit", async e => {
 	Array.from(document.getElementsByClassName("link")).forEach(link => {
 		const filename = link.pathname.slice(1)
 		link.addEventListener("mouseenter", async () => {
-			preview_text.innerText = "Upload date: Loading..."
+			preview_text.innerText = "Loading..."
 			link.href = path + filename
 			preview_text.style.animation = "fade-in 140ms linear forwards"
 			old_src = img.src
@@ -37,12 +37,15 @@ password_check.addEventListener("submit", async e => {
 				method: "HEAD"
 			})
 			preview_text.innerText = "Upload date: " + (head_result.status == 200
-				? new Date(parseInt(head_result.headers.get("Upload-Date")) * 1000).toLocaleString()
+				? new Date(parseInt(head_result.headers.get("Upload-Date"))).toLocaleString()
 				: "???")
 			const edit_date = head_result.headers.get("Edit-Date")
 			if (edit_date) {
-				preview_text.innerText += "\nEdit date: "
-				+ new Date(parseInt(edit_date) * 1000).toLocaleString()
+				preview_text.innerText += "\nEdit date: " + new Date(parseInt(edit_date)).toLocaleString()
+			}
+			const delete_date = head_result.headers.get("Delete-Date")
+			if (delete_date) {
+				preview_text.innerText += "\nDelete date: " + new Date(parseInt(delete_date)).toLocaleString()
 			}
 		})
 		link.addEventListener("mouseleave", () => {

@@ -61,6 +61,15 @@
 	}
 }
 
+@macro set_file_headers() {
+	local info = files.get_info(filename)
+	res::setHeader("Upload-Date", tonumber(info[$UPLOAD_DATE] * 1000))
+	res::setHeader("Edit-Date", tonumber(info[$EDIT_DATE] && info[$EDIT_DATE] * 1000))
+	if info[$FLAGS] && files.has_flags(info[$FLAGS], $FLAG_TEMPORARY) {
+		res::setHeader("Delete-Date", tonumber(info[$UPLOAD_DATE] * 1000 + $TEMPORARY_FILE_TIMEOUT))
+	}
+}
+
 static pprint = require("pretty-print").prettyPrint
 static timer = require("timer")
 static error_html
@@ -166,9 +175,7 @@ local patterns = {
 						print(err)
 						return
 					}
-					local info = files.get_info(filename)
-					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
-					res::setHeader("Edit-Date", info[$EDIT_DATE])
+					$set_file_headers!()
 					finish_request(req, res, info[$CONTENT_TYPE] || "image/png", file)
 				})
 			}
@@ -179,9 +186,7 @@ local patterns = {
 						print(err)
 						return
 					}
-					local info = files.get_info(filename)
-					res::setHeader("Upload-Date", info[$UPLOAD_DATE])
-					res::setHeader("Edit-Date", info[$EDIT_DATE])
+					$set_file_headers!()
 					res::setHeader("Content-Length", file_info.size)
 					finish_request(req, res, info[$CONTENT_TYPE] || "image/png")
 				})
