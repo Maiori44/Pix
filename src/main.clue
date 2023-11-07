@@ -5,7 +5,8 @@
 
 @macro assert_method(wanted) {
 	if req.method != $wanted {
-		send_error(req, res, 400, "Wrong request method.")
+		res::setHeader("Allow", $wanted)
+		send_error(req, res, 405, "Wrong request method.")
 		return
 	}
 }
@@ -206,7 +207,8 @@ local patterns = {
 				})
 			}
 			default => {
-				send_error(req, res, 400, "Wrong request method.")
+				res::setHeader("Allow", "GET, HEAD, DELETE")
+				send_error(req, res, 405, "Wrong request method.")
 			}
 		}
 	}
@@ -302,7 +304,7 @@ local patterns = {
 		$assert_method!("POST")
 		$assert_password!($read_body!({
 			if fragments.assert_timeout(id) {
-				send_error(req, res, 408, "Upload timeout.")
+				send_error(req, res, 410, "Upload timeout.")
 				return
 			}
 			match action {
