@@ -17,7 +17,7 @@ local fn write_file_fragment(req, res, id, i, last_i, filename, callback) {
 		if i == last_i {
 			uv.timer_set_repeat(uploading[id].timeout, 1)
 			uv.timer_again(uploading[id].timeout)
-			finish_request(req, res, "text/plain", filename, 200)
+			finish_request(req, res, "text/plain", filename, 201)
 			callback()
 		} else {
 			write_file_fragment(req, res, id, i + 1, last_i, filename, callback)

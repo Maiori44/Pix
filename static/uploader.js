@@ -62,7 +62,7 @@ onmessage = async (message) => {
 		}
 	})
 	const result_body = await finish_result.text()
-	if (finish_result.status != 200) {
+	if (finish_result.status != 201) {
 		postMessage({
 			type: "errored",
 			data: result_body 
