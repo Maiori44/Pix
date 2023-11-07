@@ -220,7 +220,25 @@ local patterns = {
 				print(err)
 				return
 			}
-			local list = {}
+			local favourites, others = {}, {}
+			for _, file in file_list {
+				local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
+				if !unlisted {
+					if local filename = file::match("%x+%-([^<>]+)") {
+						table.insert(favourite ? favourites : others, ("\"%s\"")::format(filename))
+					}
+				}
+			}
+			finish_request(
+				req,
+				res,
+				"application/json",
+				("{\"favourites\":[%s],\"others\":[%s]}")::format(
+					table.concat(favourites, ","),
+					table.concat(others, ",")
+				)
+			)
+			/*local list = {}
 			local tot_files = 0
 			local next_k = 2
 			local favourite_k = 3
@@ -263,7 +281,7 @@ local patterns = {
 			}
 			list[next_k] = "</table>"
 			list[1] = ("<br>%d files total<table>")::format(tot_files)
-			finish_request(req, res, "text/html", table.concat(list))
+			finish_request(req, res, "text/html", table.concat(list))*/
 		}))
 	}
 	["^/+storage_used$"] = fn(req, res) {

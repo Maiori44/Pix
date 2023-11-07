@@ -213,6 +213,10 @@ fieldset {
 	scrollbar-width: thin;
 }
 
+#file-filter {
+	display: none;
+}
+
 #event-list {
 	display: flex;
 	flex-direction: column-reverse;

@@ -16,6 +16,15 @@ password_check.addEventListener("submit", async e => {
 	password_check.remove()
 	const title = document.getElementById("title")
 	title.innerText = "Currently uploaded files"
+	const filter_span = document.getElementById("file-filter")
+	filter_span.style.display = "inline"
+	filter_span.children[1].addEventListener("input", e => {
+		const regex = new RegExp(e.target.value)
+		document.querySelectorAll("td.file").forEach(file => {
+			console.log(file.style.display)
+			file.style.display = regex.test(file.firstChild.innerText) ? "table-cell" : "none"
+		})
+	})
 	document.getElementById("file-list").insertAdjacentHTML("beforeend", text)
 	const img = document.getElementsByClassName("preview-file")[0]
 	const preview_text = document.getElementById("preview-text")
@@ -33,9 +42,7 @@ password_check.addEventListener("submit", async e => {
 			old_src = img.src
 			img.src = "/files/" + filename
 			next_target_opacity = 1
-			const head_result = await fetch(img.src, {
-				method: "HEAD"
-			})
+			const head_result = await fetch(img.src, { method: "HEAD" })
 			preview_text.innerText = "Upload date: " + (head_result.status == 200
 				? new Date(parseInt(head_result.headers.get("Upload-Date"))).toLocaleString()
 				: "???")
