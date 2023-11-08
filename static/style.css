@@ -129,6 +129,7 @@
 
 * {
 	background-color: black;
+	accent-color: black;
 	color: white;
 	font-family: "Fixedsys Excelsior";
 }
@@ -193,7 +194,14 @@ fieldset {
 	min-width: 2px;
 	width: 2px;
 	padding-bottom: 5px;
-	accent-color: black;
+}
+
+.filter {
+	text-align: center;
+	font-size: x-small;
+	max-width: 10%;
+	min-width: 10%;
+	width: 10%;
 }
 
 #bottom {

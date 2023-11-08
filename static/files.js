@@ -1,4 +1,35 @@
 const password_check = document.getElementById("password-check")
+const total_text = document.getElementById("total-text")
+
+let table, mouse_enter_link, mouse_leave_link
+function generate_table(favourites, others, regex = /.*/) {
+	table.innerHTML = "Loading..."
+	let i = 0
+	let html = "<tr>"
+	let favourites_left = favourites.length
+	for (const [link, filename] of [...favourites, ...others]) {
+		favourites_left--
+		if (regex.test(filename)) {
+			if (!(i++ % 3))
+				html += "</tr><tr>"
+			const a = `<a href="${link}" class="link">${filename}</a>`
+			html += favourites_left >= 0
+				? `<td class="file"><span class="favourite">❤</span>${a}</td>`
+				: `<td class="file">${a}</td>`
+		}
+	}
+	table.innerHTML = html + "</tr>"
+	const color = total_text.style.animation.match(/fade\-\w+\-\w+$/)
+	if (color)
+		document.querySelectorAll(".file, .link, .favourite")
+			.forEach(element => element.style.animation = `${color} 0s linear forwards`)
+	Array.from(document.getElementsByClassName("link")).forEach(link => {
+		link.filename = link.pathname
+		link.addEventListener("mouseenter", mouse_enter_link)
+		link.addEventListener("mouseleave", mouse_leave_link)
+	})
+	total_text.innerText = `${i} files total`
+}
 
 password_check.addEventListener("submit", async e => {
 	e.preventDefault()
@@ -8,59 +39,72 @@ password_check.addEventListener("submit", async e => {
 			Password: document.getElementById("password").value
 		}
 	})
-	const text = await result.text()
 	if (result.status != 200) {
-		document.write(text.replace("/index.html", "/files.html"))
+		document.write(await result.text().replace("/index.html", "/files.html"))
 		return
 	}
+	const { favourites, others } = await result.json()
 	password_check.remove()
 	const title = document.getElementById("title")
 	title.innerText = "Currently uploaded files"
+	table = document.createElement("table")
+	document.getElementById("file-list").appendChild(table)
 	const filter_span = document.getElementById("file-filter")
+	const filters = document.getElementsByClassName("filter")
+	const filter_text = filters[0].firstElementChild
+	const filter_favourites = filters[1].firstElementChild
+	const filter_others = filters[2].firstElementChild
+	const filter_regex = filters[3].firstElementChild
 	filter_span.style.display = "inline"
-	filter_span.children[1].addEventListener("input", e => {
-		const regex = new RegExp(e.target.value)
-		document.querySelectorAll("td.file").forEach(file => {
-			console.log(file.style.display)
-			file.style.display = regex.test(file.firstChild.innerText) ? "table-cell" : "none"
-		})
+	filter_span.addEventListener("input", () => {
+		try {
+			generate_table(
+				filter_favourites.checked ? favourites : [],
+				filter_others.checked ? others : [],
+				filter_text.value != ""
+					? (filter_regex.checked
+						? new RegExp(filter_text.value)
+						: new RegExp(filter_text.value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')))
+					: undefined
+			)
+		} catch (err) {
+			total_text.innerText = err
+			table.innerHTML = ""
+		}
 	})
-	document.getElementById("file-list").insertAdjacentHTML("beforeend", text)
 	const img = document.getElementsByClassName("preview-file")[0]
 	const preview_text = document.getElementById("preview-text")
 	img.style.opacity = "0"
 	let target_opacity = 0
 	let next_target_opacity = 0
-	let path = "/files/"
+	let path = "/files"
 	let old_src
-	Array.from(document.getElementsByClassName("link")).forEach(link => {
-		const filename = link.pathname.slice(1)
-		link.addEventListener("mouseenter", async () => {
-			preview_text.innerText = "Loading..."
-			link.href = path + filename
-			preview_text.style.animation = "fade-in 140ms linear forwards"
-			old_src = img.src
-			img.src = "/files/" + filename
-			next_target_opacity = 1
-			const head_result = await fetch(img.src, { method: "HEAD" })
-			preview_text.innerText = "Upload date: " + (head_result.status == 200
-				? new Date(parseInt(head_result.headers.get("Upload-Date"))).toLocaleString()
-				: "???")
-			const edit_date = head_result.headers.get("Edit-Date")
-			if (edit_date) {
-				preview_text.innerText += "\nEdit date: " + new Date(parseInt(edit_date)).toLocaleString()
-			}
-			const delete_date = head_result.headers.get("Delete-Date")
-			if (delete_date) {
-				preview_text.innerText += "\nDelete date: " + new Date(parseInt(delete_date)).toLocaleString()
-			}
-		})
-		link.addEventListener("mouseleave", () => {
-			preview_text.style.animation = "fade-out 140ms linear forwards"
-			next_target_opacity = 0
-			target_opacity = 0
-		})
-	})
+	mouse_enter_link = async e => {
+		const link = e.target
+		preview_text.innerText = "Loading..."
+		link.href = path + link.filename
+		preview_text.style.animation = "fade-in 140ms linear forwards"
+		old_src = img.src
+		img.src = "/files" + link.filename
+		next_target_opacity = 1
+		const head_result = await fetch(img.src, { method: "HEAD" })
+		preview_text.innerText = "Upload date: " + (head_result.status == 200
+			? new Date(parseInt(head_result.headers.get("Upload-Date"))).toLocaleString()
+			: "???")
+		const edit_date = head_result.headers.get("Edit-Date")
+		if (edit_date) {
+			preview_text.innerText += "\nEdit date: " + new Date(parseInt(edit_date)).toLocaleString()
+		}
+		const delete_date = head_result.headers.get("Delete-Date")
+		if (delete_date) {
+			preview_text.innerText += "\nDelete date: " + new Date(parseInt(delete_date)).toLocaleString()
+		}
+	}
+	mouse_leave_link = () => {
+		preview_text.style.animation = "fade-out 140ms linear forwards"
+		next_target_opacity = 0
+		target_opacity = 0
+	}
 	img.addEventListener("error", () => {
 		img.src = old_src
 		target_opacity = 0
@@ -77,6 +121,7 @@ password_check.addEventListener("submit", async e => {
 			img.style.opacity = opacity - 0.05					
 		}
 	}, 7)
+	generate_table(favourites, others)
 	const delete_button = document.getElementById("delete-button")
 	const replace_button = document.getElementById("replace-button")
 	delete_button.og_name = delete_button.innerText

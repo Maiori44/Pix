@@ -225,7 +225,10 @@ local patterns = {
 				local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
 				if !unlisted {
 					if local filename = file::match("%x+%-([^<>]+)") {
-						table.insert(favourite ? favourites : others, ("\"%s\"")::format(filename))
+						table.insert(
+							favourite ? favourites : others,
+							("[\"%s\", \"%s\"]")::format(querystring.urlencode(file), filename)
+						)
 					}
 				}
 			}
@@ -238,50 +241,6 @@ local patterns = {
 					table.concat(others, ",")
 				)
 			)
-			/*local list = {}
-			local tot_files = 0
-			local next_k = 2
-			local favourite_k = 3
-			for _, file in file_list {
-				if local filename = file::match("%x+%-([^<>]+)") {
-					local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
-					if unlisted {
-						continue
-					}
-					tot_files += 1
-					if (tot_files % 3) == 1 {
-						list[next_k] = "<tr class=\"file\">"
-						next_k += 1
-					}
-					local link = ("<a href=\"%s\" class=\"link\">%s</a>")::format(
-						querystring.urlencode(file),
-						filename
-					)
-					if favourite {
-						list[next_k] = list[favourite_k]
-						list[favourite_k] = ("<td class=\"file\"><span class=\"favourite\">♥</span>%s</td>")::format(link)
-						favourite_k += 1
-						if list[favourite_k] == "</tr>" {
-							favourite_k += 2
-						}
-					} else {
-						list[next_k] = ("<td class=\"file\">%s</td>")::format(link)
-					}
-					if (tot_files % 3) == 0 {
-						list[next_k + 1] = "</tr>"
-						next_k += 2
-					} else {
-						next_k += 1
-					}
-				}
-			}
-			if list[next_k - 1] != "</tr>" {
-				list[next_k] = "</tr>"
-				next_k += 1
-			}
-			list[next_k] = "</table>"
-			list[1] = ("<br>%d files total<table>")::format(tot_files)
-			finish_request(req, res, "text/html", table.concat(list))*/
 		}))
 	}
 	["^/+storage_used$"] = fn(req, res) {
