@@ -121,6 +121,12 @@
 }
 
 @media screen and (max-width: 640px) {
+	body {
+		overflox-x: hidden;
+		transform: scale(0.8);
+		transform-origin: top center;
+	}
+
 	.preview-file {
 		min-width: 20%;
 		max-width: 40%;
