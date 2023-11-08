@@ -254,3 +254,13 @@ progress {
     height: 30px;
     background-color: lightgray;
 }
+
+::-webkit-file-upload-button {
+	background-color: black;
+	color: white;
+}
+
+::file-selector-button {
+	background-color: black;
+	color: white;
+}
