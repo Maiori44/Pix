@@ -131,6 +131,7 @@
 	background-color: black;
 	accent-color: black;
 	color: white;
+	border-color: white;
 	font-family: "Fixedsys Excelsior";
 }
 
@@ -255,12 +256,9 @@ progress {
     background-color: lightgray;
 }
 
-::-webkit-file-upload-button {
-	background-color: black;
-	color: white;
-}
-
 ::file-selector-button {
 	background-color: black;
 	color: white;
+	border-color: white;
+	font-family: "Fixedsys Excelsior";
 }
