@@ -13,13 +13,15 @@ function set_upload_file_logic(form, replace) {
 					flags_value += parseInt(flag.value)
 			})
 		}
-		let percentage, list
+		let percentage, progress_bar, list
 		form.addEventListener("animationend", () => {
 			form.innerHTML = "<h2 id=\"uploading-text\">Uploading</h2>\n"
-				+ "<span id=\"percentage\">0%</span>"
+				+ "<span id=\"percentage\"><br>0%</span>"
+				+ "<progress id=\"progress-bar\" value=\"0\"></progress>"
 				+ "<span id=\"event-list\"><span>Initializing...</span></span>"
 			const uploading_text = document.getElementById("uploading-text")
 			percentage = document.getElementById("percentage")
+			progress_bar = document.getElementById("progress-bar")
 			list = document.getElementById("event-list")
 			let dots = 0
 			setInterval(() => {
@@ -65,13 +67,11 @@ function set_upload_file_logic(form, replace) {
 
 		function update_percentage() {
 			if (percentage) {
-				const amount = Math.floor((loaded_size / total_size) * 100000) / 1000
-				let main_text = total_size >= 65536
-					? `${amount}% (Received: ${Math.floor((uploaded_size / total_size) * 100000) / 1000}%)`
-					: `${amount}%`
+				const amount = ((uploaded_size / total_size) * 100).toFixed(3)
 				percentage.innerText = total_files > 1
-					? `${main_text} (${uploaded_files}/${total_files})`
-					: main_text
+					? `${amount}% (${uploaded_files}/${total_files}) `
+					: `${amount}% `
+				progress_bar.value = uploaded_size / total_size
 			}
 		}
 		

@@ -127,7 +127,7 @@
 	}
 }
 
-* {
+*:not(progress) {
 	background-color: black;
 	accent-color: black;
 	color: white;
@@ -139,6 +139,10 @@ fieldset {
 	min-width: 380.8px;
 	height: 173px;
 	overflow: hidden;
+}
+
+progress {
+	accent-color: #666;
 }
 
 .biggest {
