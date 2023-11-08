@@ -40,7 +40,7 @@ password_check.addEventListener("submit", async e => {
 		}
 	})
 	if (result.status != 200) {
-		document.write(await result.text().replace("/index.html", "/files.html"))
+		document.write((await result.text()).replace("/index.html", "/files.html"))
 		return
 	}
 	const { favourites, others } = await result.json()
