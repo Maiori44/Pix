@@ -108,11 +108,11 @@
 }
 
 @media screen and (min-width: 640px) {
-    body {
+	body {
 		overflow-x: hidden;
-        transform: scale(2);
+		transform: scale(2);
 		transform-origin: top center;
-    }
+	}
 
 	.preview-file {
 		min-width: 5%;
@@ -247,13 +247,20 @@ progress {
 	overflow: hidden;
 }
 
-::-webkit-scrollbar-track  {
-    background-color: black;
+#event-list::-webkit-scrollbar-thumb {
+	display: none;
+}
+
+::-webkit-scrollbar {
+	width: 3px;
+	height: 3px;
+	background-color: black;
 }
 
 ::-webkit-scrollbar-thumb {
-    height: 30px;
-    background-color: lightgray;
+	height: 38px;
+	border-radius: 5px;
+	background-color: lightgray;
 }
 
 ::file-selector-button {
