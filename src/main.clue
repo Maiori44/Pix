@@ -144,6 +144,7 @@ local patterns = {
 	["^/+([%a_]+%.%a+)$"] = fn(req, res, filename) {
 		$assert_method!("GET")
 		if local cached = cache[filename] {
+			res::setHeader("Cache-Control", "max-age=3600")
 			finish_request(req, res, cached.type, cached.file)
 		} else {
 			fs.readFile("static/" .. filename, fn(err, file) {
