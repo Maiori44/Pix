@@ -24,7 +24,7 @@ function generate_table(favourites, others, regex = /.*/) {
 		document.querySelectorAll(".file, .link, .favourite")
 			.forEach(element => element.style.animation = `${color} 0s linear forwards`)
 	Array.from(document.getElementsByClassName("link")).forEach(link => {
-		link.filename = link.pathname
+		link.filename = link.pathname.slice(1)
 		link.addEventListener("mouseenter", mouse_enter_link)
 		link.addEventListener("mouseleave", mouse_leave_link)
 	})
@@ -77,7 +77,7 @@ password_check.addEventListener("submit", async e => {
 	img.style.opacity = "0"
 	let target_opacity = 0
 	let next_target_opacity = 0
-	let path = "/files"
+	let path = "/files/"
 	let old_src
 	mouse_enter_link = async e => {
 		const link = e.target
@@ -85,7 +85,7 @@ password_check.addEventListener("submit", async e => {
 		link.href = path + link.filename
 		preview_text.style.animation = "fade-in 140ms linear forwards"
 		old_src = img.src
-		img.src = "/files" + link.filename
+		img.src = "/files/" + link.filename
 		img.errored = false
 		next_target_opacity = 1
 		const head_result = await fetch(img.src, { method: "HEAD" })
