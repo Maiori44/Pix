@@ -163,6 +163,7 @@ local patterns = {
 					type = $
 					file = $
 				}
+				res::setHeader("Cache-Control", "max-age=3600")
 				finish_request(req, res, type, file)
 			})
 		}
