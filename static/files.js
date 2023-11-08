@@ -86,6 +86,7 @@ password_check.addEventListener("submit", async e => {
 		preview_text.style.animation = "fade-in 140ms linear forwards"
 		old_src = img.src
 		img.src = "/files" + link.filename
+		img.errored = false
 		next_target_opacity = 1
 		const head_result = await fetch(img.src, { method: "HEAD" })
 		preview_text.innerText = "Upload date: " + (head_result.status == 200
@@ -106,6 +107,8 @@ password_check.addEventListener("submit", async e => {
 		target_opacity = 0
 	}
 	img.addEventListener("error", () => {
+		if (img.errored) return
+		img.errored = true
 		img.src = old_src
 		target_opacity = 0
 		next_target_opacity = 0
