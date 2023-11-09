@@ -14,7 +14,7 @@ function generate_table(favourites, others, regex = /.*/) {
 				html += "</tr><tr>"
 			const a = `<a href="${link}" class="link">${filename}</a>`
 			html += favourites_left >= 0
-				? `<td class="file"><span class="favourite">❤</span>${a}</td>`
+				? `<td class="file"><span class="favourite">❤</span><br class="favourite">${a}</td>`
 				: `<td class="file">${a}</td>`
 		}
 	}

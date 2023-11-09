@@ -188,10 +188,16 @@ progress {
 	overflow-wrap: break-word;
 }
 
-.favourite {
+span.favourite {
 	position: absolute;
 	top: 0px;
 	left: 1px;
+}
+
+br.favourite {
+	display: block;
+	content: "";
+	margin-top: 13px;
 }
 
 .preview-file {
