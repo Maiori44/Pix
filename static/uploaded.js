@@ -5,8 +5,10 @@ if (!total_files) {
 	title.innerText = "What are you doing here?"
 } else {
 	const images = document.getElementById("images")
-	for (let i = 0; i < total_files; i++)
-		images.innerHTML += `<img class="preview-file" src="/files/${encodeURIComponent(params.get("file" + i))}">`
+	for (let i = 0; i < total_files; i++) {
+		const src = `/files/${encodeURIComponent(params.get("file" + i))}?cache-skip-hack=${Date.now()}`
+		images.innerHTML += `<img class="preview-file" src="${src}">`
+	}
 	document.querySelectorAll(".preview-file").forEach(img => {
 		img.addEventListener("error", () => {
 			img.remove()
@@ -14,6 +16,7 @@ if (!total_files) {
 	})
 	if (params.get("replaced") == "true") {
 		title.innerText = "File replaced!"
+		title.outerHTML += "<small>(Note that others might have cached the older file...)</small>"
 		document.getElementsByClassName("two-buttons")[1].parentElement.href = "/files.html"
 	} else if (total_files > 1) {
 		title.innerText = `${total_files} files uploaded!`
