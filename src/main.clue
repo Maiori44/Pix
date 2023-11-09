@@ -62,13 +62,15 @@
 	}
 }
 
-@macro set_file_headers() {
+@macro finish_file_request(file) {
 	local info = files.get_info(filename)
 	res::setHeader("Upload-Date", tonumber(info[$UPLOAD_DATE] * 1000))
 	res::setHeader("Edit-Date", tonumber(info[$EDIT_DATE] && info[$EDIT_DATE] * 1000))
+	res::setHeader("Cache-Control", "max-age=604800")
 	if info[$FLAGS] && files.has_flags(info[$FLAGS], $FLAG_TEMPORARY) {
 		res::setHeader("Delete-Date", tonumber(info[$UPLOAD_DATE] * 1000 + $TEMPORARY_FILE_TIMEOUT))
 	}
+	finish_request(req, res, info[$CONTENT_TYPE] || "image/png", $file)
 }
 
 static pprint = require("pretty-print").prettyPrint
@@ -139,12 +141,12 @@ local cache = {
 local patterns = {
 	["^/+$"] = fn(req, res) {
 		res::setHeader("Location", "index.html")
-		finish_request(req, res, "text/plain", "Redirect to index.html\n", 303)
+		finish_request(req, res, "text/plain", "Redirect to /index.html\n", 303)
 	}
 	["^/+([%a_]+%.%a+)$"] = fn(req, res, filename) {
 		$assert_method!("GET")
 		if local cached = cache[filename] {
-			res::setHeader("Cache-Control", "max-age=3600")
+			res::setHeader("Cache-Control", "max-age=7200")
 			finish_request(req, res, cached.type, cached.file)
 		} else {
 			fs.readFile("static/" .. filename, fn(err, file) {
@@ -164,7 +166,7 @@ local patterns = {
 					type = $
 					file = $
 				}
-				res::setHeader("Cache-Control", "max-age=3600")
+				res::setHeader("Cache-Control", "max-age=7200")
 				finish_request(req, res, type, file)
 			})
 		}
@@ -178,8 +180,7 @@ local patterns = {
 						print(err)
 						return
 					}
-					$set_file_headers!()
-					finish_request(req, res, info[$CONTENT_TYPE] || "image/png", file)
+					$finish_file_request!(file)
 				})
 			}
 			"HEAD" => {
@@ -189,9 +190,8 @@ local patterns = {
 						print(err)
 						return
 					}
-					$set_file_headers!()
 					res::setHeader("Content-Length", file_info.size)
-					finish_request(req, res, info[$CONTENT_TYPE] || "image/png")
+					$finish_file_request!(nil)
 				})
 			}
 			"DELETE" => {
