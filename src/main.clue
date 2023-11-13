@@ -12,12 +12,8 @@
 }
 
 @macro assert_password(code) {
-	fs.readFile(".password", fn(err, password) {
-		if err {
-			send_error(req, res, 500, "Something unexpected happened.")
-			print(err)
-			return
-		}
+	fs.readFile(".passwordeee", fn(err, password) {
+		$assert!(500, "Something unexpected happened.", print(err))
 		if req.headers["Password"] != password::match("[^\n]+") {
 			send_error(req, res, 401, "Wrong password.")
 			return
@@ -30,6 +26,14 @@
 	local owner = files.get_info($filename)[$OWNER]
 	if !owner || (owner != req.ip) {
 		send_error(req, res, 403, "File not uploaded by you.")
+		return
+	}
+}
+
+@macro assert(code, message, ...) {
+	if err {
+		send_error(req, res, $code, $message)
+		${$vararg}
 		return
 	}
 }
@@ -151,11 +155,7 @@ local patterns = {
 			finish_request(req, res, cached.type, cached.file)
 		} else {
 			fs.readFile("static/" .. filename, fn(err, file) {
-				if err {
-					send_error(req, res, 404, "File not found.")
-					print(err)
-					return
-				}
+				$assert!(404, "File not found.", print(err))
 				local type = match filename::match("%.(%a+)$") {
 					"html" => "text/html",
 					"js" => "text/javascript",
@@ -176,21 +176,13 @@ local patterns = {
 		match req.method {
 			"GET" => {
 				fs.readFile("data/files/" .. filename, fn(err, file) {
-					if err {
-						send_error(req, res, 404, "File not found.")
-						print(err)
-						return
-					}
+					$assert!(404, "File not found.", print(err))
 					$finish_file_request!(file)
 				})
 			}
 			"HEAD" => {
 				fs.stat("data/files/" .. filename, fn(err, file_info) {
-					if err {
-						send_error(req, res, 404, "File not found.")
-						print(err)
-						return
-					}
+					$assert!(404, "File not found.", print(err))
 					res::setHeader("Content-Length", file_info.size)
 					$finish_file_request!(nil)
 				})
@@ -199,11 +191,7 @@ local patterns = {
 				$assert_password!({
 					$assert_owner!(filename)
 					fs.unlink("data/files/" .. filename, fn(err) {
-						if err {
-							send_error(req, res, 404, "File not found.")
-							print(err)
-							return
-						}
+						$assert!(404, "File not found.", print(err))
 						finish_request(req, res, nil, nil, 204)
 						files.delete_file(filename)
 					})
@@ -218,11 +206,7 @@ local patterns = {
 	["^/+files/*$"] = fn(req, res) {
 		$assert_method!("GET")
 		$assert_password!(fs.readdir("data/files", fn(err, file_list) {
-			if err {
-				send_error(req, res, 500, "Something unexpected happened.")
-				print(err)
-				return
-			}
+			$assert!(500, "Something unexpected happened.", print(err))
 			local favourites, others = {}, {}
 			for _, file in file_list {
 				local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
@@ -249,11 +233,7 @@ local patterns = {
 	["^/+storage_used$"] = fn(req, res) {
 		$assert_method!("GET")
 		fs.readdir("data/files", fn(err, files) {
-			if err {
-				send_error(req, res, 500, "Something unexpected happened.")
-				print(err)
-				return
-			}
+			$assert!(500, "Something unexpected happened.", print(err))
 			local size = 0
 			local tot_files = #files
 			if tot_files == 0 {
@@ -263,12 +243,7 @@ local patterns = {
 				if !tot_files {
 					return
 				}
-				if err {
-					send_error(req, res, 500, "Something unexpected happened.")
-					print(err)
-					tot_files = nil
-					return
-				}
+				$assert!(500, "Something unexpected happened.", print(err), tot_files = nil)
 				size += file_info.size
 				tot_files -= 1
 				if tot_files == 0 {

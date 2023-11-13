@@ -9,11 +9,7 @@ local uploading = {}
 
 local fn write_file_fragment(req, res, id, i, last_i, filename, callback) {
 	fs.appendFile("data/files/" .. filename, uploading[id].data[i], fn(err) {
-		if err {
-			send_error(req, res, 500, "Something unexpected happened.")
-			callback(err)
-			return
-		}
+		$assert!(500, "Something unexpected happened.", callback(err))
 		if i == last_i {
 			uv.timer_set_repeat(uploading[id].timeout, 1)
 			uv.timer_again(uploading[id].timeout)
@@ -86,12 +82,7 @@ return {
 	save_file = fn(req, res, id, last_i, filename, symlink, callback) {
 		if symlink {
 			fs.symlink("/tmp/" .. filename, "data/files/" .. filename, fn(err) {
-				if err {
-					send_error(req, res, 500, "Something unexpected happened.")
-					print(err)
-					callback(err)
-					return
-				}
+				$assert!(500, "Something unexpected happened.", print(err), callback(err))
 				write_file_fragment(req, res, id, 1, last_i, filename, callback)
 				timer.setTimeout($TEMPORARY_FILE_TIMEOUT, delete_temporary_file, filename)
 			})
