@@ -67,6 +67,7 @@
 	res::setHeader("Upload-Date", tonumber(info[$UPLOAD_DATE] * 1000))
 	res::setHeader("Edit-Date", tonumber(info[$EDIT_DATE] && info[$EDIT_DATE] * 1000))
 	res::setHeader("Cache-Control", "max-age=604800")
+	res::setHeader("Access-Control-Allow-Origin", "*")
 	if info[$FLAGS] && files.has_flags(info[$FLAGS], $FLAG_TEMPORARY) {
 		res::setHeader("Delete-Date", tonumber(info[$UPLOAD_DATE] * 1000 + $TEMPORARY_FILE_TIMEOUT))
 	}
