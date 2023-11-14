@@ -12,7 +12,7 @@
 }
 
 @macro assert_password(code) {
-	fs.readFile(".passwordeee", fn(err, password) {
+	fs.readFile(".password", fn(err, password) {
 		$assert!(500, "Something unexpected happened.", print(err))
 		if req.headers["Password"] != password::match("[^\n]+") {
 			send_error(req, res, 401, "Wrong password.")
