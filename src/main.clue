@@ -161,7 +161,8 @@ local patterns = {
 					"js" => "text/javascript",
 					"css" => "text/css",
 					"ttf" => "font/tff",
-					"ico" => "image/x-icon"
+					"ico" => "image/x-icon",
+					"txt" => "text/plain"
 				}
 				cache[filename] = {
 					type = $
