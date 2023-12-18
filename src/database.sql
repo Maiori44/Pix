@@ -31,7 +31,7 @@ FROM
 WHERE
 	upload_date IS NOT NULL
 	AND
-	flags & 1 == 0
+	(flags IS NULL OR flags & 1 == 0)
 ORDER BY
 	(edit_date || upload_date) DESC;
 ---
