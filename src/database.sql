@@ -33,5 +33,5 @@ WHERE
 	AND
 	(flags IS NULL OR flags & 1 == 0)
 ORDER BY
-	(edit_date || upload_date) DESC;
+	coalesce(edit_date, upload_date) DESC;
 ---
