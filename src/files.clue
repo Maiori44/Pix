@@ -126,7 +126,10 @@ return {
 	get_flagged_files = fn(flags) {
 		$get_all_steps!(codes.get_flagged_files::reset()::bind(flags))
 	}
-	get_file_list = fn() {
-		$get_all_steps!(codes.get_file_list::reset())
+	get_file_list = fn(_, dont_reset) {
+		if !dont_reset {
+			codes.get_file_list::reset()
+		}
+		return codes.get_file_list::step()
 	}
 }

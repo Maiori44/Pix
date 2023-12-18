@@ -208,7 +208,7 @@ local patterns = {
 		$assert_method!("GET")
 		$assert_password!({
 			local favourites, others = {}, {}
-			for _, file_info in files.get_file_list() {
+			for file_info with files.get_file_list {
 				local {[1] => raw_uuid, [2] => file, [3] => flags} = file_info
 				if local filename = file::match("[^<>]+") {
 					local r1, r2, r3, r4 = ("I4I4I4I4")::unpack(raw_uuid)
