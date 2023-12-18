@@ -211,17 +211,12 @@ local patterns = {
 			for file_info with files.get_file_list {
 				local {[1] => raw_uuid, [2] => file, [3] => flags} = file_info
 				if local filename = file::match("[^<>]+") {
-					local r1, r2, r3, r4 = ("I4I4I4I4")::unpack(raw_uuid)
+					local uuid = #raw_uuid == 16
+						? ("%08x%08x%08x%08x")::format(("I4I4I4I4")::unpack(raw_uuid))
+						: raw_uuid
 					table.insert(
 						files.has_flags(flags || 0, $FLAG_FAVOURITE) ? favourites : others,
-						("[\"%08x%08x%08x%08x-%s\", \"%s\"]")::format(
-							r1,
-							r2,
-							r3,
-							r4,
-							querystring.urlencode(file),
-							filename
-						)
+						("[\"%s-%s\", \"%s\"]")::format(uuid, querystring.urlencode(file), filename)
 					)
 				}
 			}
