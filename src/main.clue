@@ -206,18 +206,23 @@ local patterns = {
 	}
 	["^/+files/*$"] = fn(req, res) {
 		$assert_method!("GET")
-		$assert_password!(fs.readdir("data/files", fn(err, file_list) {
-			$assert!(500, "Something unexpected happened.", print(err))
+		$assert_password!({
 			local favourites, others = {}, {}
-			for _, file in file_list {
-				local unlisted, favourite = files.has_flags(file, $FLAG_UNLISTED, $FLAG_FAVOURITE)
-				if !unlisted {
-					if local filename = file::match("%x+%-([^<>]+)") {
-						table.insert(
-							favourite ? favourites : others,
-							("[\"%s\", \"%s\"]")::format(querystring.urlencode(file), filename)
+			for _, file_info in files.get_file_list() {
+				local {[1] => raw_uuid, [2] => file, [3] => flags} = file_info
+				if local filename = file::match("[^<>]+") {
+					local r1, r2, r3, r4 = ("I4I4I4I4")::unpack(raw_uuid)
+					table.insert(
+						files.has_flags(flags, $FLAG_FAVOURITE) ? favourites : others,
+						("[\"%08x%08x%08x%08x-%s\", \"%s\"]")::format(
+							r1,
+							r2,
+							r3,
+							r4,
+							querystring.urlencode(file),
+							filename
 						)
-					}
+					)
 				}
 			}
 			finish_request(
@@ -229,7 +234,7 @@ local patterns = {
 					table.concat(others, ",")
 				)
 			)
-		}))
+		})
 	}
 	["^/+storage_used$"] = fn(req, res) {
 		$assert_method!("GET")

@@ -21,4 +21,17 @@ UPDATE Files SET content_type = ?, edit_date = ? WHERE uuid = ?;
 SELECT flags FROM Files WHERE uuid = ?;
 ---get_flagged_files:
 SELECT uuid, filename, upload_date FROM Files WHERE flags & ?;
+---get_file_list:
+SELECT
+	uuid,
+	filename,
+	flags
+FROM
+	Files
+WHERE
+	upload_date IS NOT NULL
+	AND
+	flags & 1 == 0
+ORDER BY
+	upload_date DESC;
 ---

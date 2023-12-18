@@ -10,6 +10,18 @@
 @define FLAG_FAVOURITE 2
 @define FLAG_TEMPORARY 4
 
+@macro get_all_steps(stmt) {
+	local stmt = $stmt
+	local result = {}
+	loop {
+		if local next = stmt::step() {
+			table.insert(result, next)
+		} else {
+			return result
+		}
+	}
+}
+
 local fs = require("fs")
 
 if !fs.existsSync("data") {
@@ -112,14 +124,9 @@ return {
 		)
 	}
 	get_flagged_files = fn(flags) {
-		local stmt = codes.get_flagged_files::reset()::bind(flags)
-		local result = {}
-		loop {
-			if local next = stmt::step() {
-				table.insert(result, next)
-			} else {
-				return result
-			}
-		}
+		$get_all_steps!(codes.get_flagged_files::reset()::bind(flags))
+	}
+	get_file_list = fn() {
+		$get_all_steps!(codes.get_file_list::reset())
 	}
 }
