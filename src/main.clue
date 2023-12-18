@@ -213,7 +213,7 @@ local patterns = {
 				if local filename = file::match("[^<>]+") {
 					local r1, r2, r3, r4 = ("I4I4I4I4")::unpack(raw_uuid)
 					table.insert(
-						files.has_flags(flags, $FLAG_FAVOURITE) ? favourites : others,
+						files.has_flags(flags || 0, $FLAG_FAVOURITE) ? favourites : others,
 						("[\"%08x%08x%08x%08x-%s\", \"%s\"]")::format(
 							r1,
 							r2,
