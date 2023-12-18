@@ -33,5 +33,5 @@ WHERE
 	AND
 	flags & 1 == 0
 ORDER BY
-	upload_date DESC;
+	(edit_date || upload_date) DESC;
 ---
